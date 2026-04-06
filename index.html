@@ -1199,14 +1199,14 @@
     const params = new URLSearchParams(window.location.search);
     const urlToken = params.get('token');
     if (urlToken) {
-      sessionStorage.setItem('gh_pat', urlToken);
+      localStorage.setItem('gh_pat', urlToken);
       // Strip token from URL
       const url = new URL(window.location);
       url.searchParams.delete('token');
       window.history.replaceState({}, '', url.toString());
       return urlToken;
     }
-    return sessionStorage.getItem('gh_pat');
+    return localStorage.getItem('gh_pat');
   }
 
   function showAuthModal() {
@@ -1226,7 +1226,7 @@
           headers: { Authorization: `token ${token}` }
         });
         if (!res.ok) throw new Error('Invalid');
-        sessionStorage.setItem('gh_pat', token);
+        localStorage.setItem('gh_pat', token);
         modal.style.display = 'none';
         init(token);
       } catch {
