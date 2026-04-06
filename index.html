@@ -958,6 +958,13 @@
     margin-top: 24px;
   }
 
+  /* ---- WakaTime summary grid ---- */
+  @media (min-width: 768px) {
+    #waka-summary {
+      grid-template-columns: repeat(4, 1fr) !important;
+    }
+  }
+
   /* ---- Two-column layout ---- */
   .two-col {
     display: grid;
@@ -2318,10 +2325,10 @@
     };
 
     document.getElementById('waka-summary').innerHTML =
-      '<div class="stat-card"><div class="stat-value">' + (cumulative.text || fmt(totalSecs)) + '</div><div class="stat-label">Total (7 days)</div></div>' +
-      '<div class="stat-card"><div class="stat-value">' + (dailyAvg.text || fmt(totalSecs / 7)) + '</div><div class="stat-label">Daily average</div></div>' +
-      '<div class="stat-card"><div class="stat-value">' + activeProjects + '</div><div class="stat-label">Active projects</div></div>' +
-      '<div class="stat-card"><div class="stat-value" style="color:var(--green)">' + fmt(billableSecs) + '</div><div class="stat-label">Billable hours</div></div>';
+      '<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center;"><div style="font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text);">' + (cumulative.text || fmt(totalSecs)) + '</div><div style="font-size:11px;color:var(--muted);margin-top:4px;">Total (7 days)</div></div>' +
+      '<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center;"><div style="font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text);">' + (dailyAvg.text || fmt(totalSecs / 7)) + '</div><div style="font-size:11px;color:var(--muted);margin-top:4px;">Daily average</div></div>' +
+      '<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center;"><div style="font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text);">' + activeProjects + '</div><div style="font-size:11px;color:var(--muted);margin-top:4px;">Active projects</div></div>' +
+      '<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center;"><div style="font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--green);">' + fmt(billableSecs) + '</div><div style="font-size:11px;color:var(--muted);margin-top:4px;">Billable hours</div></div>';
 
     // Daily bar chart
     const maxDaySecs = Math.max.apply(null, days.map(function(d) { return d.grand_total.total_seconds; }).concat([1]));
