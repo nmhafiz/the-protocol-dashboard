@@ -830,12 +830,18 @@
     <div class="help-box">
       <strong><i data-lucide="info"></i> How to get your token</strong>
       <span class="help-path">GitHub &rarr; Settings &rarr; Developer Settings &rarr; Personal Access Tokens &rarr; Fine-grained &rarr; Generate new</span>
-      Repository access: <strong>All repositories</strong>
-      <div class="permissions">
-        <span class="perm-tag">Gists (read)</span>
-        <span class="perm-tag">Issues (read)</span>
-        <span class="perm-tag">Contents (read)</span>
-        <span class="perm-tag">Metadata (read)</span>
+      <div style="margin-top:8px;font-size:12px;line-height:1.8;">
+        <strong>1. Repository access:</strong> All repositories<br>
+        <strong>2. Repository permissions:</strong>
+        <div class="permissions" style="margin:4px 0;">
+          <span class="perm-tag">Contents (read)</span>
+          <span class="perm-tag">Issues (read)</span>
+          <span class="perm-tag">Metadata (read)</span>
+        </div>
+        <strong>3. Account permissions</strong> (tab sebelah):
+        <div class="permissions" style="margin:4px 0;">
+          <span class="perm-tag">Gists (read and write)</span>
+        </div>
       </div>
     </div>
     <input type="password" id="pat-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
