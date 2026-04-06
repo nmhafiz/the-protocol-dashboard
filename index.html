@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Protocol — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #09090b;
+    --card: #18181b;
+    --border: #27272a;
+    --text: #fafafa;
+    --muted: #a1a1aa;
+    --green: #22c55e;
+    --amber: #f59e0b;
+    --red: #ef4444;
+    --radius: 12px;
+    --gap: 16px;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    opacity: 0;
+    animation: fadeIn 0.6s ease-out forwards;
+  }
+
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  @keyframes dotPulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.3); opacity: 0.7; }
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 24px 48px;
+  }
+
+  /* ---- Header ---- */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo h1 {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  .logo-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .logo-icon i { color: #09090b; }
+
+  .header-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .refresh-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: dotPulse 2s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+
+  /* ---- Stats Bar ---- */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--gap);
+    margin-bottom: 32px;
+  }
+
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    animation: slideUp 0.5s ease-out backwards;
+  }
+
+  .stat-card:nth-child(1) { animation-delay: 0.05s; }
+  .stat-card:nth-child(2) { animation-delay: 0.1s; }
+  .stat-card:nth-child(3) { animation-delay: 0.15s; }
+  .stat-card:nth-child(4) { animation-delay: 0.2s; }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(34,197,94,0.04) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .stat-card:hover {
+    border-color: #3f3f46;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+
+  .stat-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: rgba(34,197,94,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+  }
+
+  .stat-icon i { color: var(--green); width: 18px; height: 18px; }
+
+  .stat-number {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-label {
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  /* ---- Main Grid ---- */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--gap);
+  }
+
+  /* ---- Card ---- */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    animation: slideUp 0.5s ease-out backwards;
+    animation-delay: 0.25s;
+  }
+
+  .card:hover {
+    border-color: #3f3f46;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .card-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .card-title i { color: var(--muted); width: 16px; height: 16px; }
+
+  .card-badge {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    background: rgba(161,161,170,0.1);
+    padding: 2px 8px;
+    border-radius: 6px;
+  }
+
+  .card-body {
+    padding: 0;
+  }
+
+  /* ---- Table ---- */
+  .table-wrap {
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead th {
+    text-align: left;
+    padding: 10px 16px;
+    color: var(--muted);
+    font-weight: 500;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    transition: background 0.15s;
+  }
+
+  tbody tr:hover {
+    background: rgba(255,255,255,0.02);
+  }
+
+  tbody td {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(39,39,42,0.5);
+    white-space: nowrap;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .device-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+  }
+
+  .device-cell i { color: var(--muted); width: 14px; height: 14px; }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .status-dot.green { background: var(--green); box-shadow: 0 0 6px rgba(34,197,94,0.4); }
+  .status-dot.amber { background: var(--amber); box-shadow: 0 0 6px rgba(245,158,11,0.4); }
+  .status-dot.red { background: var(--red); box-shadow: 0 0 6px rgba(239,68,68,0.4); }
+
+  .doctor-pass {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--green);
+    font-weight: 500;
+  }
+
+  .doctor-fail {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--red);
+    font-weight: 500;
+  }
+
+  .doctor-pass i, .doctor-fail i { width: 14px; height: 14px; }
+
+  /* ---- Timeline ---- */
+  .timeline {
+    padding: 16px 20px;
+    max-height: 480px;
+    overflow-y: auto;
+  }
+
+  .timeline::-webkit-scrollbar { width: 4px; }
+  .timeline::-webkit-scrollbar-track { background: transparent; }
+  .timeline::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .timeline-item {
+    display: flex;
+    gap: 12px;
+    padding: 10px 0;
+    position: relative;
+  }
+
+  .timeline-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 42px;
+    bottom: -2px;
+    width: 1px;
+    background: var(--border);
+  }
+
+  .timeline-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(34,197,94,0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--green);
+    flex-shrink: 0;
+    text-transform: uppercase;
+  }
+
+  .timeline-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .timeline-message {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text);
+    word-break: break-word;
+  }
+
+  .timeline-meta {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .timeline-meta i { width: 12px; height: 12px; }
+
+  /* ---- Bar Chart ---- */
+  .bar-chart {
+    padding: 16px 20px;
+  }
+
+  .bar-item {
+    margin-bottom: 16px;
+  }
+
+  .bar-item:last-child { margin-bottom: 0; }
+
+  .bar-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    font-size: 13px;
+  }
+
+  .bar-name { font-weight: 500; }
+
+  .bar-value {
+    color: var(--muted);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .bar-track {
+    height: 8px;
+    background: rgba(34,197,94,0.08);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #16a34a, #22c55e);
+    transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .bar-breakdown {
+    margin-top: 8px;
+    padding-left: 12px;
+    border-left: 2px solid var(--border);
+    display: none;
+  }
+
+  .bar-breakdown.open { display: block; }
+
+  .bar-breakdown-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--muted);
+    padding: 3px 0;
+  }
+
+  .bar-toggle {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 11px;
+    cursor: pointer;
+    padding: 4px 0;
+    transition: color 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .bar-toggle:hover { color: var(--text); }
+  .bar-toggle i { width: 12px; height: 12px; transition: transform 0.2s; }
+  .bar-toggle.open i { transform: rotate(180deg); }
+
+  /* ---- Issues ---- */
+  .issues-list {
+    padding: 0;
+  }
+
+  .issue-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 20px;
+    border-bottom: 1px solid rgba(39,39,42,0.5);
+    transition: background 0.15s;
+  }
+
+  .issue-item:last-child { border-bottom: none; }
+  .issue-item:hover { background: rgba(255,255,255,0.02); }
+
+  .issue-icon {
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+
+  .issue-icon i { color: var(--amber); width: 16px; height: 16px; }
+
+  .issue-content { flex: 1; min-width: 0; }
+
+  .issue-title {
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  .issue-title a {
+    color: var(--text);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+
+  .issue-title a:hover { color: var(--green); }
+
+  .issue-meta {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* ---- Empty State ---- */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    text-align: center;
+  }
+
+  .empty-state i { color: var(--green); width: 32px; height: 32px; margin-bottom: 12px; }
+
+  .empty-state p {
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  /* ---- Skeleton ---- */
+  .skeleton {
+    background: linear-gradient(90deg, var(--border) 25%, #3f3f46 50%, var(--border) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 6px;
+  }
+
+  .skeleton-line {
+    height: 14px;
+    margin-bottom: 10px;
+    width: 100%;
+  }
+
+  .skeleton-line:last-child { margin-bottom: 0; }
+  .skeleton-line.w60 { width: 60%; }
+  .skeleton-line.w80 { width: 80%; }
+  .skeleton-line.w40 { width: 40%; }
+
+  .skeleton-stat {
+    height: 32px;
+    width: 64px;
+    margin-bottom: 6px;
+  }
+
+  .skeleton-row {
+    display: flex;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(39,39,42,0.5);
+  }
+
+  .skeleton-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .skeleton-block {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  /* ---- Modal ---- */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    animation: fadeIn 0.3s ease-out;
+    padding: 24px;
+  }
+
+  .modal {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 440px;
+    width: 100%;
+    animation: slideUp 0.3s ease-out;
+  }
+
+  .modal h2 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .modal h2 i { color: var(--green); }
+
+  .modal p {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+
+  .modal input {
+    width: 100%;
+    padding: 10px 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: 16px;
+  }
+
+  .modal input:focus { border-color: var(--green); }
+
+  .modal input::placeholder { color: #52525b; }
+
+  .modal button {
+    width: 100%;
+    padding: 10px;
+    background: var(--green);
+    color: #09090b;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  .modal button:hover { opacity: 0.9; }
+
+  .modal .error-msg {
+    color: var(--red);
+    font-size: 12px;
+    margin-top: 8px;
+    display: none;
+  }
+
+  /* ---- Footer ---- */
+  footer {
+    text-align: center;
+    padding: 32px 0 0;
+    font-size: 12px;
+    color: #52525b;
+    border-top: 1px solid var(--border);
+    margin-top: 32px;
+  }
+
+  /* ---- Responsive ---- */
+  @media (max-width: 768px) {
+    .container { padding: 16px 16px 32px; }
+    header { padding-bottom: 20px; margin-bottom: 24px; }
+    .stats-bar { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .main-grid { grid-template-columns: 1fr; }
+    .stat-number { font-size: 24px; }
+    .logo h1 { font-size: 17px; }
+  }
+
+  @media (max-width: 480px) {
+    .stats-bar { grid-template-columns: 1fr; }
+    thead th { font-size: 11px; padding: 8px 12px; }
+    tbody td { padding: 10px 12px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="auth-modal" class="modal-overlay" style="display:none;">
+  <div class="modal">
+    <h2><i data-lucide="shield" style="width:20px;height:20px;"></i> Authentication</h2>
+    <p>Enter a GitHub Personal Access Token to access The Protocol ecosystem data. The token needs <code>gist</code> and <code>repo</code> scopes.</p>
+    <input type="password" id="pat-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+    <button id="pat-submit">Connect</button>
+    <div class="error-msg" id="pat-error">Invalid token. Please check and try again.</div>
+  </div>
+</div>
+
+<div class="container">
+  <header>
+    <div class="logo">
+      <div class="logo-icon"><i data-lucide="terminal" style="width:18px;height:18px;"></i></div>
+      <h1>The Protocol</h1>
+    </div>
+    <div class="header-meta">
+      <span id="last-refresh">—</span>
+      <div class="refresh-indicator">
+        <span class="pulse-dot"></span>
+        <span>Auto-refresh</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Stats Bar -->
+  <div class="stats-bar" id="stats-bar">
+    <div class="stat-card">
+      <div class="stat-icon"><i data-lucide="monitor"></i></div>
+      <div class="stat-number" id="stat-devices"><div class="skeleton skeleton-stat"></div></div>
+      <div class="stat-label">Total Devices</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon"><i data-lucide="zap"></i></div>
+      <div class="stat-number" id="stat-skills"><div class="skeleton skeleton-stat"></div></div>
+      <div class="stat-label">Skills Active</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon"><i data-lucide="alert-circle"></i></div>
+      <div class="stat-number" id="stat-issues"><div class="skeleton skeleton-stat"></div></div>
+      <div class="stat-label">Issues Open</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon"><i data-lucide="activity"></i></div>
+      <div class="stat-number" id="stat-uptime"><div class="skeleton skeleton-stat"></div></div>
+      <div class="stat-label">Uptime %</div>
+    </div>
+  </div>
+
+  <!-- Main Grid -->
+  <div class="main-grid">
+    <!-- Left Column -->
+    <div style="display:flex;flex-direction:column;gap:var(--gap);">
+      <!-- Team Status -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><i data-lucide="users"></i> Team Status</div>
+          <span class="card-badge" id="device-count-badge">—</span>
+        </div>
+        <div class="card-body">
+          <div class="table-wrap" id="team-table">
+            <div style="padding:16px 20px;">
+              <div class="skeleton skeleton-line w80"></div>
+              <div class="skeleton skeleton-line"></div>
+              <div class="skeleton skeleton-line w60"></div>
+              <div class="skeleton skeleton-line"></div>
+              <div class="skeleton skeleton-line w80"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Audit Log -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><i data-lucide="git-commit"></i> Audit Log</div>
+          <span class="card-badge" id="commit-count-badge">—</span>
+        </div>
+        <div class="card-body">
+          <div class="timeline" id="audit-log">
+            <div class="skeleton-row"><div class="skeleton skeleton-circle"></div><div class="skeleton-block"><div class="skeleton skeleton-line w80"></div><div class="skeleton skeleton-line w40"></div></div></div>
+            <div class="skeleton-row"><div class="skeleton skeleton-circle"></div><div class="skeleton-block"><div class="skeleton skeleton-line w60"></div><div class="skeleton skeleton-line w40"></div></div></div>
+            <div class="skeleton-row"><div class="skeleton skeleton-circle"></div><div class="skeleton-block"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line w40"></div></div></div>
+            <div class="skeleton-row"><div class="skeleton skeleton-circle"></div><div class="skeleton-block"><div class="skeleton skeleton-line w80"></div><div class="skeleton skeleton-line w40"></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column -->
+    <div style="display:flex;flex-direction:column;gap:var(--gap);">
+      <!-- Skill Usage -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><i data-lucide="bar-chart-3"></i> Skill Usage</div>
+          <span class="card-badge" id="skill-count-badge">—</span>
+        </div>
+        <div class="card-body">
+          <div class="bar-chart" id="skill-chart">
+            <div style="padding:4px 0;">
+              <div class="skeleton skeleton-line"></div>
+              <div class="skeleton skeleton-line" style="height:8px;margin-top:8px;"></div>
+              <div style="height:20px;"></div>
+              <div class="skeleton skeleton-line w80"></div>
+              <div class="skeleton skeleton-line" style="height:8px;margin-top:8px;"></div>
+              <div style="height:20px;"></div>
+              <div class="skeleton skeleton-line w60"></div>
+              <div class="skeleton skeleton-line" style="height:8px;margin-top:8px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Open Issues -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><i data-lucide="alert-triangle"></i> Open Issues</div>
+          <span class="card-badge" id="issue-count-badge">—</span>
+        </div>
+        <div class="card-body">
+          <div class="issues-list" id="issues-list">
+            <div class="skeleton-row"><div class="skeleton" style="width:16px;height:16px;border-radius:4px;flex-shrink:0;margin-top:2px;"></div><div class="skeleton-block"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line w40"></div></div></div>
+            <div class="skeleton-row"><div class="skeleton" style="width:16px;height:16px;border-radius:4px;flex-shrink:0;margin-top:2px;"></div><div class="skeleton-block"><div class="skeleton skeleton-line w80"></div><div class="skeleton skeleton-line w40"></div></div></div>
+            <div class="skeleton-row"><div class="skeleton" style="width:16px;height:16px;border-radius:4px;flex-shrink:0;margin-top:2px;"></div><div class="skeleton-block"><div class="skeleton skeleton-line w60"></div><div class="skeleton skeleton-line w40"></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>The Protocol v1.3.0 — Private Ecosystem</footer>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ---- Lucide icons ----
+  lucide.createIcons();
+
+  // ---- Token management ----
+  function getToken() {
+    const params = new URLSearchParams(window.location.search);
+    const urlToken = params.get('token');
+    if (urlToken) {
+      sessionStorage.setItem('gh_pat', urlToken);
+      // Strip token from URL
+      const url = new URL(window.location);
+      url.searchParams.delete('token');
+      window.history.replaceState({}, '', url.toString());
+      return urlToken;
+    }
+    return sessionStorage.getItem('gh_pat');
+  }
+
+  function showAuthModal() {
+    const modal = document.getElementById('auth-modal');
+    modal.style.display = 'flex';
+    const input = document.getElementById('pat-input');
+    const btn = document.getElementById('pat-submit');
+    const err = document.getElementById('pat-error');
+
+    btn.addEventListener('click', async () => {
+      const token = input.value.trim();
+      if (!token) { err.style.display = 'block'; err.textContent = 'Please enter a token.'; return; }
+      btn.textContent = 'Verifying...';
+      btn.disabled = true;
+      try {
+        const res = await fetch('https://api.github.com/user', {
+          headers: { Authorization: `token ${token}` }
+        });
+        if (!res.ok) throw new Error('Invalid');
+        sessionStorage.setItem('gh_pat', token);
+        modal.style.display = 'none';
+        init(token);
+      } catch {
+        err.style.display = 'block';
+        err.textContent = 'Invalid token. Please check and try again.';
+        btn.textContent = 'Connect';
+        btn.disabled = false;
+      }
+    });
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') btn.click();
+    });
+  }
+
+  // ---- Relative time ----
+  function relativeTime(dateStr) {
+    const now = new Date();
+    const date = new Date(dateStr);
+    const diff = Math.floor((now - date) / 1000);
+    if (diff < 60) return 'just now';
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    if (diff < 172800) return 'yesterday';
+    if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
+    if (diff < 2592000) return `${Math.floor(diff / 604800)}w ago`;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  function syncStatus(dateStr) {
+    const diff = (Date.now() - new Date(dateStr).getTime()) / 1000;
+    if (diff < 86400) return 'green';
+    if (diff < 604800) return 'amber';
+    return 'red';
+  }
+
+  // ---- GitHub API helpers ----
+  function ghFetch(url, token) {
+    return fetch(url, {
+      headers: {
+        Authorization: `token ${token}`,
+        Accept: 'application/vnd.github.v3+json'
+      }
+    }).then(r => {
+      if (!r.ok) throw new Error(`GitHub API ${r.status}`);
+      return r.json();
+    });
+  }
+
+  // ---- Data fetching ----
+  async function fetchGists(token) {
+    try {
+      const gists = await ghFetch('https://api.github.com/gists?per_page=100', token);
+      return gists.filter(g => {
+        return Object.keys(g.files).some(name => name.startsWith('the-protocol-status-') && name.endsWith('.json'));
+      });
+    } catch {
+      return [];
+    }
+  }
+
+  async function fetchCommits(token) {
+    try {
+      return await ghFetch('https://api.github.com/repos/nmhafiz/the-protocol/commits?per_page=20', token);
+    } catch {
+      return [];
+    }
+  }
+
+  async function fetchIssues(token) {
+    try {
+      return await ghFetch('https://api.github.com/repos/nmhafiz/the-protocol/issues?labels=skill-report&state=open&per_page=30', token);
+    } catch {
+      return [];
+    }
+  }
+
+  async function fetchGistContent(gist, token) {
+    try {
+      const full = await ghFetch(gist.url, token);
+      const fileName = Object.keys(full.files).find(n => n.startsWith('the-protocol-status-'));
+      if (!fileName) return null;
+      const content = full.files[fileName].content;
+      return JSON.parse(content);
+    } catch {
+      return null;
+    }
+  }
+
+  // ---- Render functions ----
+  function renderStats(devices, skillsCount, issueCount) {
+    const totalDevices = devices.length;
+    const passCount = devices.filter(d => d.doctorStatus === 'pass').length;
+    const uptime = totalDevices > 0 ? Math.round((passCount / totalDevices) * 100) : 100;
+
+    document.getElementById('stat-devices').textContent = totalDevices;
+    document.getElementById('stat-skills').textContent = skillsCount;
+    document.getElementById('stat-issues').textContent = issueCount;
+    document.getElementById('stat-uptime').textContent = uptime + '%';
+  }
+
+  function renderTeamTable(devices) {
+    const container = document.getElementById('team-table');
+    document.getElementById('device-count-badge').textContent = `${devices.length} device${devices.length !== 1 ? 's' : ''}`;
+
+    if (devices.length === 0) {
+      container.innerHTML = `<div class="empty-state"><i data-lucide="monitor-off"></i><p>No device status data found</p></div>`;
+      lucide.createIcons();
+      return;
+    }
+
+    let html = `<table><thead><tr>
+      <th>Device</th><th>Version</th><th>Last Sync</th><th>Skills</th><th>Doctor</th>
+    </tr></thead><tbody>`;
+
+    devices.forEach(d => {
+      const status = syncStatus(d.lastSync);
+      const doctorHtml = d.doctorStatus === 'pass'
+        ? `<span class="doctor-pass"><i data-lucide="check-circle"></i> Pass</span>`
+        : `<span class="doctor-fail"><i data-lucide="x-circle"></i> Fail</span>`;
+
+      html += `<tr>
+        <td><div class="device-cell"><span class="status-dot ${status}"></span><i data-lucide="monitor"></i> ${escHtml(d.name)}</div></td>
+        <td style="color:var(--muted);">${escHtml(d.version || '—')}</td>
+        <td style="color:var(--muted);">${relativeTime(d.lastSync)}</td>
+        <td>${d.skillCount ?? '—'}</td>
+        <td>${doctorHtml}</td>
+      </tr>`;
+    });
+
+    html += '</tbody></table>';
+    container.innerHTML = html;
+    lucide.createIcons();
+  }
+
+  function renderSkillChart(skillData) {
+    const container = document.getElementById('skill-chart');
+    const totalSkills = Object.keys(skillData.totals || {}).length;
+    document.getElementById('skill-count-badge').textContent = `${totalSkills} skill${totalSkills !== 1 ? 's' : ''}`;
+
+    if (totalSkills === 0) {
+      container.innerHTML = `<div class="empty-state"><i data-lucide="bar-chart-3"></i><p>No skill usage data</p></div>`;
+      lucide.createIcons();
+      return;
+    }
+
+    const totals = skillData.totals;
+    const byUser = skillData.byUser || {};
+    const maxVal = Math.max(...Object.values(totals), 1);
+    const sorted = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+
+    let html = '';
+    sorted.forEach(([name, count], idx) => {
+      const pct = Math.round((count / maxVal) * 100);
+      const id = `breakdown-${idx}`;
+
+      // Build user breakdown
+      let breakdownHtml = '';
+      const users = Object.entries(byUser)
+        .filter(([, skills]) => skills[name])
+        .map(([user, skills]) => ({ user, count: skills[name] }))
+        .sort((a, b) => b.count - a.count);
+
+      if (users.length > 0) {
+        breakdownHtml = `<div class="bar-breakdown" id="${id}">`;
+        users.forEach(u => {
+          breakdownHtml += `<div class="bar-breakdown-item"><span>${escHtml(u.user)}</span><span>${u.count}</span></div>`;
+        });
+        breakdownHtml += `</div>`;
+      }
+
+      html += `<div class="bar-item">
+        <div class="bar-label">
+          <span class="bar-name">${escHtml(name)}</span>
+          <span class="bar-value">${count} · ${pct}%</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill" style="width:0%;" data-width="${pct}%"></div></div>
+        ${users.length > 0 ? `<button class="bar-toggle" onclick="toggleBreakdown('${id}', this)"><i data-lucide="chevron-down"></i> ${users.length} user${users.length !== 1 ? 's' : ''}</button>` : ''}
+        ${breakdownHtml}
+      </div>`;
+    });
+
+    container.innerHTML = html;
+    lucide.createIcons();
+
+    // Animate bars
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        container.querySelectorAll('.bar-fill').forEach(bar => {
+          bar.style.width = bar.dataset.width;
+        });
+      }, 50);
+    });
+  }
+
+  window.toggleBreakdown = function(id, btn) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.toggle('open');
+    btn.classList.toggle('open');
+  };
+
+  function renderAuditLog(commits) {
+    const container = document.getElementById('audit-log');
+    document.getElementById('commit-count-badge').textContent = `${commits.length} commit${commits.length !== 1 ? 's' : ''}`;
+
+    if (commits.length === 0) {
+      container.innerHTML = `<div class="empty-state"><i data-lucide="git-commit"></i><p>No commits found</p></div>`;
+      lucide.createIcons();
+      return;
+    }
+
+    let html = '';
+    commits.forEach(c => {
+      const author = c.commit?.author?.name || c.author?.login || 'Unknown';
+      const initial = author.charAt(0);
+      const msg = c.commit?.message?.split('\n')[0] || 'No message';
+      const date = c.commit?.author?.date;
+
+      html += `<div class="timeline-item">
+        <div class="timeline-avatar">${escHtml(initial)}</div>
+        <div class="timeline-content">
+          <div class="timeline-message">${escHtml(msg)}</div>
+          <div class="timeline-meta">
+            <i data-lucide="git-commit"></i>
+            ${escHtml(author)} · ${date ? relativeTime(date) : '—'}
+          </div>
+        </div>
+      </div>`;
+    });
+
+    container.innerHTML = html;
+    lucide.createIcons();
+  }
+
+  function renderIssues(issues) {
+    const container = document.getElementById('issues-list');
+    document.getElementById('issue-count-badge').textContent = `${issues.length} open`;
+
+    if (issues.length === 0) {
+      container.innerHTML = `<div class="empty-state"><i data-lucide="check-circle"></i><p>No open issues — all clear</p></div>`;
+      lucide.createIcons();
+      return;
+    }
+
+    let html = '';
+    issues.forEach(issue => {
+      html += `<div class="issue-item">
+        <div class="issue-icon"><i data-lucide="alert-triangle"></i></div>
+        <div class="issue-content">
+          <div class="issue-title"><a href="${escHtml(issue.html_url)}" target="_blank" rel="noopener">${escHtml(issue.title)}</a></div>
+          <div class="issue-meta">${escHtml(issue.user?.login || 'unknown')} · ${relativeTime(issue.created_at)}</div>
+        </div>
+      </div>`;
+    });
+
+    container.innerHTML = html;
+    lucide.createIcons();
+  }
+
+  function escHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  // ---- Process gist data ----
+  function processGistData(gistContents) {
+    const devices = [];
+    const skillTotals = {};
+    const skillByUser = {};
+
+    gistContents.forEach(data => {
+      if (!data) return;
+
+      // Device info
+      if (data.device || data.hostname) {
+        devices.push({
+          name: data.device || data.hostname || 'Unknown',
+          version: data.version || data.claude_version || '—',
+          lastSync: data.timestamp || data.last_sync || data.updated_at || new Date().toISOString(),
+          skillCount: data.skills_count || (data.skills ? Object.keys(data.skills).length : 0),
+          doctorStatus: data.doctor_status || data.doctor || (data.healthy ? 'pass' : 'fail') || 'pass'
+        });
+      }
+
+      // Skill usage
+      const skills = data.skills || data.skill_usage || {};
+      const user = data.user || data.device || data.hostname || 'unknown';
+
+      if (typeof skills === 'object') {
+        Object.entries(skills).forEach(([skill, count]) => {
+          const c = typeof count === 'number' ? count : 1;
+          skillTotals[skill] = (skillTotals[skill] || 0) + c;
+          if (!skillByUser[user]) skillByUser[user] = {};
+          skillByUser[user][skill] = (skillByUser[user][skill] || 0) + c;
+        });
+      }
+    });
+
+    return { devices, skillData: { totals: skillTotals, byUser: skillByUser } };
+  }
+
+  // ---- Main init ----
+  async function init(token) {
+    updateRefreshTime();
+
+    // Fetch all data in parallel
+    const [gists, commits, issues] = await Promise.all([
+      fetchGists(token),
+      fetchCommits(token),
+      fetchIssues(token)
+    ]);
+
+    // Fetch gist contents
+    const gistContents = await Promise.all(gists.map(g => fetchGistContent(g, token)));
+    const { devices, skillData } = processGistData(gistContents);
+
+    // Render everything
+    renderStats(devices, Object.keys(skillData.totals).length, issues.length);
+    renderTeamTable(devices);
+    renderSkillChart(skillData);
+    renderAuditLog(commits);
+    renderIssues(issues);
+  }
+
+  function updateRefreshTime() {
+    const el = document.getElementById('last-refresh');
+    const now = new Date();
+    el.textContent = `Updated ${now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
+  }
+
+  // ---- Boot ----
+  const token = getToken();
+  if (token) {
+    init(token);
+    // Auto-refresh every 5 minutes
+    setInterval(() => init(token), 5 * 60 * 1000);
+  } else {
+    showAuthModal();
+  }
+})();
+</script>
+</body>
+</html>
