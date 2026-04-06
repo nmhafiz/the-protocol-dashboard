@@ -1229,7 +1229,7 @@
     </div>
   </div>
 
-  <footer>The Protocol v1.3.0</footer>
+  <footer>The Protocol v1.6.0</footer>
 </div>
 
 <!-- Bottom Navigation (Mobile) -->
@@ -1355,7 +1355,7 @@
   // ---- Relative time ----
   function relativeTime(dateStr) {
     const now = new Date();
-    const date = new Date(dateStr);
+    const date = new Date(typeof dateStr === 'string' ? dateStr.replace(' ', 'T') : dateStr);
     const diff = Math.floor((now - date) / 1000);
     if (diff < 60) return 'just now';
     if (diff < 3600) return `${Math.floor(diff / 60)} min ago`;
@@ -1367,7 +1367,7 @@
   }
 
   function syncStatus(dateStr) {
-    const diff = (Date.now() - new Date(dateStr).getTime()) / 1000;
+    const diff = (Date.now() - new Date(typeof dateStr === 'string' ? dateStr.replace(' ', 'T') : dateStr).getTime()) / 1000;
     if (diff < 86400) return 'green';
     if (diff < 604800) return 'amber';
     return 'red';
@@ -1872,10 +1872,14 @@
         aggEnforcement.warns += (enf.warns || 0);
         aggEnforcement.allows += (enf.allows || 0);
         aggEnforcement.suggests += (enf.suggests || 0);
-        // Count hooks from by_hook keys
+        // Count hooks from by_hook keys (fallback)
         if (enf.by_hook && typeof enf.by_hook === 'object') {
           totalHooksActive = Math.max(totalHooksActive, Object.keys(enf.by_hook).length);
         }
+      }
+      // Prefer explicit hooks_active field if present
+      if (typeof data.hooks_active === 'number' && data.hooks_active > 0) {
+        totalHooksActive = Math.max(totalHooksActive, data.hooks_active);
       }
 
       // Overrides
@@ -1900,9 +1904,10 @@
       }
     });
 
-    // Sort overrides and decisions by date descending
-    aggOverrides.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
-    aggSkillDecisions.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+    // Sort overrides and decisions by date descending (replace space with T for cross-browser compat)
+    const parseDate = (d) => new Date(typeof d === 'string' ? d.replace(' ', 'T') : d || 0);
+    aggOverrides.sort((a, b) => parseDate(b.date) - parseDate(a.date));
+    aggSkillDecisions.sort((a, b) => parseDate(b.date) - parseDate(a.date));
 
     return {
       devices,
