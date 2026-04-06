@@ -1171,6 +1171,23 @@
     </div>
   </div>
 
+  <!-- Pattern Detection (full width) -->
+  <div class="section" id="section-patterns-wrap" style="display:none;">
+    <div class="card section-anchor" id="section-patterns">
+      <div class="card-header">
+        <div class="card-title"><i data-lucide="scan"></i> Pattern Detection</div>
+        <span class="card-badge" id="patterns-badge">--</span>
+      </div>
+      <div class="card-body" id="pattern-detection-body">
+        <div style="padding:16px 20px;">
+          <div class="skeleton skeleton-line w80"></div>
+          <div class="skeleton skeleton-line"></div>
+          <div class="skeleton skeleton-line w60"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Skill Usage (full width) -->
   <div class="section">
     <div class="card section-anchor" id="section-usage">
@@ -1246,6 +1263,10 @@
     <i data-lucide="zap"></i>
     <span>Skills</span>
   </a>
+  <a href="#section-patterns" data-section="patterns">
+    <i data-lucide="scan"></i>
+    <span>Patterns</span>
+  </a>
   <a href="#section-log" data-section="log">
     <i data-lucide="git-branch"></i>
     <span>Log</span>
@@ -1284,7 +1305,7 @@
 
   // ---- Bottom nav active state ----
   const navLinks = document.querySelectorAll('.bottom-nav a');
-  const sections = ['section-status', 'section-health', 'section-landscape', 'section-usage', 'section-log', 'section-issues'];
+  const sections = ['section-status', 'section-health', 'section-landscape', 'section-patterns', 'section-usage', 'section-log', 'section-issues'];
 
   function updateActiveNav() {
     const scrollY = window.scrollY + window.innerHeight / 3;
@@ -1737,6 +1758,78 @@
     lucide.createIcons();
   }
 
+  // ---- Pattern Detection ----
+  function renderPatternDetection(patterns) {
+    const wrapper = document.getElementById('section-patterns-wrap');
+    const container = document.getElementById('pattern-detection-body');
+    const badge = document.getElementById('patterns-badge');
+
+    if (!patterns) {
+      wrapper.style.display = 'none';
+      return;
+    }
+
+    const entries = patterns.entries || [];
+    const repeated = patterns.repeated || {};
+    const repeatedKeys = Object.keys(repeated);
+    const totalCount = entries.length + repeatedKeys.length;
+
+    if (totalCount === 0) {
+      wrapper.style.display = 'none';
+      return;
+    }
+
+    // Show the section
+    wrapper.style.display = '';
+    badge.textContent = `${totalCount} pattern${totalCount !== 1 ? 's' : ''}`;
+
+    let html = '';
+
+    // A) Repeated Patterns
+    html += `<div class="subsection-label">Repeated Patterns</div>`;
+    if (repeatedKeys.length > 0) {
+      html += `<div class="override-list">`;
+      repeatedKeys.forEach(token => {
+        const projects = repeated[token];
+        const projectCount = projects.length;
+        html += `<div class="override-item">
+          <div style="width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;margin-top:7px;"></div>
+          <div class="override-content">
+            <div style="font-weight:600;color:var(--text);">${escHtml(token)}</div>
+            <div style="color:var(--muted);font-size:12px;margin-top:2px;">seen in ${projectCount} projects: ${projects.map(p => escHtml(p)).join(', ')}</div>
+          </div>
+        </div>`;
+      });
+      html += `</div>`;
+    } else {
+      html += `<div style="padding:16px 20px;color:var(--muted);font-size:13px;display:flex;align-items:center;gap:8px;"><i data-lucide="info" style="width:14px;height:14px;color:var(--muted);"></i> No repeated patterns detected yet. Patterns build over time across projects.</div>`;
+    }
+
+    // B) Recent Fingerprints (last 5)
+    html += `<div class="subsection-label">Recent Fingerprints</div>`;
+    if (entries.length > 0) {
+      html += `<div class="override-list">`;
+      entries.slice(-5).reverse().forEach(entry => {
+        const tokens = (entry.tokens || []).join(', ');
+        html += `<div class="override-item">
+          <div style="width:6px;height:6px;border-radius:50%;background:var(--muted);flex-shrink:0;margin-top:7px;"></div>
+          <div class="override-content">
+            <div style="font-weight:500;color:var(--cyan);">${escHtml(entry.project || 'Unknown')}</div>
+            <div style="color:var(--muted);font-size:12px;margin-top:2px;">${escHtml(tokens)}</div>
+          </div>
+          <span class="override-date">${escHtml(entry.date || '--')}</span>
+        </div>`;
+      });
+      html += `</div>`;
+    } else {
+      html += `<div style="padding:16px 20px;color:var(--muted);font-size:13px;">No session fingerprints recorded yet.</div>`;
+    }
+
+    container.innerHTML = html;
+    container.classList.add('content-loaded');
+    lucide.createIcons();
+  }
+
   window.toggleBreakdown = function(id, btn) {
     const el = document.getElementById(id);
     if (!el) return;
@@ -1818,6 +1911,7 @@
     let aggSkillTypes = { community: 0, proven: 0, backup: 0 };
     let aggSkillDecisions = [];
     let totalHooksActive = 0;
+    let aggPatterns = { entries: [], repeated: {} };
 
     gistContents.forEach(data => {
       if (!data) return;
@@ -1902,12 +1996,39 @@
       if (Array.isArray(decisions)) {
         aggSkillDecisions.push(...decisions);
       }
+
+      // Patterns
+      const pat = data.patterns;
+      if (pat && typeof pat === 'object') {
+        if (Array.isArray(pat.entries)) {
+          aggPatterns.entries.push(...pat.entries);
+        }
+        if (pat.repeated && typeof pat.repeated === 'object') {
+          Object.entries(pat.repeated).forEach(([token, projects]) => {
+            if (!aggPatterns.repeated[token]) {
+              aggPatterns.repeated[token] = [];
+            }
+            if (Array.isArray(projects)) {
+              projects.forEach(p => {
+                if (!aggPatterns.repeated[token].includes(p)) {
+                  aggPatterns.repeated[token].push(p);
+                }
+              });
+            }
+          });
+        }
+      }
     });
 
     // Sort overrides and decisions by date descending (replace space with T for cross-browser compat)
     const parseDate = (d) => new Date(typeof d === 'string' ? d.replace(' ', 'T') : d || 0);
     aggOverrides.sort((a, b) => parseDate(b.date) - parseDate(a.date));
     aggSkillDecisions.sort((a, b) => parseDate(b.date) - parseDate(a.date));
+
+    // Filter out repeated entries with fewer than 2 projects
+    Object.keys(aggPatterns.repeated).forEach(k => {
+      if (aggPatterns.repeated[k].length < 2) delete aggPatterns.repeated[k];
+    });
 
     return {
       devices,
@@ -1916,7 +2037,8 @@
       overrides: aggOverrides,
       skillTypes: aggSkillTypes,
       skillDecisions: aggSkillDecisions,
-      hooksActive: totalHooksActive
+      hooksActive: totalHooksActive,
+      patterns: aggPatterns
     };
   }
 
@@ -1935,13 +2057,14 @@
 
     // Fetch gist contents
     const gistContents = await Promise.all(gists.map(g => fetchGistContent(g, token)));
-    const { devices, skillData, enforcement, overrides, skillTypes, skillDecisions, hooksActive } = processGistData(gistContents);
+    const { devices, skillData, enforcement, overrides, skillTypes, skillDecisions, hooksActive, patterns } = processGistData(gistContents);
 
     // Render everything
     renderStats(devices, skillTypes, enforcement, hooksActive);
     renderTeamTable(devices);
     renderProtocolHealth(enforcement, overrides, hooksActive);
     renderSkillLandscape(skillTypes, skillDecisions);
+    renderPatternDetection(patterns);
     renderSkillChart(skillData);
     renderAuditLog(commits);
     renderIssues(issues);
