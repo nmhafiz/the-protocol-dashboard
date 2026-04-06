@@ -1243,8 +1243,9 @@
     document.getElementById('skill-count-badge').textContent = `${totalSkills} skill${totalSkills !== 1 ? 's' : ''}`;
 
     if (totalSkills === 0) {
-      container.innerHTML = `<div class="empty-state"><i data-lucide="bar-chart-3"></i><p>No skill usage data</p></div>`;
-      lucide.createIcons();
+      // Hide entire skill usage section when no real data
+      const section = container.closest('.card');
+      if (section) section.style.display = 'none';
       return;
     }
 
