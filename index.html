@@ -1251,7 +1251,7 @@
     const totals = skillData.totals;
     const byUser = skillData.byUser || {};
     const maxVal = Math.max(...Object.values(totals), 1);
-    const sorted = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+    const sorted = Object.entries(totals).sort((a, b) => b[1] - a[1]).slice(0, 10);
 
     let html = '';
     sorted.forEach(([name, count], idx) => {
@@ -1378,26 +1378,44 @@
       if (!data) return;
 
       // Device info
-      if (data.device || data.hostname) {
+      const deviceName = data.device_id || data.device || data.hostname || null;
+      if (deviceName) {
+        // Doctor can be object {pass, fail} or string
+        let docStatus = 'pass';
+        if (data.doctor && typeof data.doctor === 'object') {
+          docStatus = (data.doctor.fail || 0) > 0 ? 'fail' : 'pass';
+        } else if (typeof data.doctor_status === 'string') {
+          docStatus = data.doctor_status;
+        }
+        // Skills can be array or number
+        let sCount = 0;
+        if (typeof data.skill_count === 'number') sCount = data.skill_count;
+        else if (Array.isArray(data.skills)) sCount = data.skills.length;
+        else if (typeof data.skills_count === 'number') sCount = data.skills_count;
+
         devices.push({
-          name: data.device || data.hostname || 'Unknown',
-          version: data.version || data.claude_version || '--',
-          lastSync: data.timestamp || data.last_sync || data.updated_at || new Date().toISOString(),
-          skillCount: data.skills_count || (data.skills ? Object.keys(data.skills).length : 0),
-          doctorStatus: data.doctor_status || data.doctor || (data.healthy ? 'pass' : 'fail') || 'pass'
+          name: deviceName,
+          user: data.github_user || '',
+          version: data.version || '--',
+          lastSync: data.reported_at || data.last_sync || data.timestamp || new Date().toISOString(),
+          skillCount: sCount,
+          doctorStatus: docStatus,
+          doctorDetail: data.doctor || null
         });
       }
 
-      // Skill usage
-      const skills = data.skills || data.skill_usage || {};
-      const user = data.user || data.device || data.hostname || 'unknown';
+      // Skill usage — from usage_last_7d (object {skill: count})
+      const usage = data.usage_last_7d || data.skill_usage || {};
+      const user = data.user || data.github_user || data.device_id || data.device || 'unknown';
 
-      if (typeof skills === 'object') {
-        Object.entries(skills).forEach(([skill, count]) => {
+      if (typeof usage === 'object' && !Array.isArray(usage)) {
+        Object.entries(usage).forEach(([skill, count]) => {
           const c = typeof count === 'number' ? count : 1;
-          skillTotals[skill] = (skillTotals[skill] || 0) + c;
-          if (!skillByUser[user]) skillByUser[user] = {};
-          skillByUser[user][skill] = (skillByUser[user][skill] || 0) + c;
+          if (c > 0) {
+            skillTotals[skill] = (skillTotals[skill] || 0) + c;
+            if (!skillByUser[user]) skillByUser[user] = {};
+            skillByUser[user][skill] = (skillByUser[user][skill] || 0) + c;
+          }
         });
       }
     });
@@ -1423,7 +1441,9 @@
     const { devices, skillData } = processGistData(gistContents);
 
     // Render everything
-    renderStats(devices, Object.keys(skillData.totals).length, issues.length);
+    // Skills count = max from any device's installed skills
+    const maxSkills = devices.reduce((max, d) => Math.max(max, d.skillCount || 0), 0);
+    renderStats(devices, maxSkills, issues.length);
     renderTeamTable(devices);
     renderSkillChart(skillData);
     renderAuditLog(commits);
