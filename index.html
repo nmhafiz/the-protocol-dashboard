@@ -1360,7 +1360,6 @@
         <div class="card-title"><i data-lucide="clock"></i> WakaTime Analytics</div>
         <div style="display:flex;gap:8px;">
           <button id="waka-billable-toggle" onclick="window.toggleBillable()" style="font-size:11px;background:transparent;border:1px solid var(--border);color:var(--muted);padding:4px 10px;border-radius:6px;cursor:pointer;font-family:inherit;">Billable only</button>
-          <button onclick="window.showWakaAuthModal()" style="font-size:11px;background:transparent;border:1px solid var(--border);color:var(--muted);padding:4px 10px;border-radius:6px;cursor:pointer;font-family:inherit;">Change API key</button>
         </div>
       </div>
       <div class="card-body">
@@ -2115,6 +2114,7 @@
     let totalHooksActive = 0;
     let aggPatterns = { entries: [], repeated: {} };
     let aggDoctor = { pass: 0, fail: 0, total: 0, categories: [] };
+    let aggWakatime = null;
 
     gistContents.forEach(data => {
       if (!data) return;
@@ -2222,6 +2222,11 @@
         }
       }
 
+      // WakaTime (use first device that has data)
+      if (!aggWakatime && data.wakatime && typeof data.wakatime === 'object' && Array.isArray(data.wakatime.data)) {
+        aggWakatime = data.wakatime;
+      }
+
       // Doctor (use latest/largest report — categories from any device with them)
       const doc = data.doctor;
       if (doc && typeof doc === 'object') {
@@ -2260,31 +2265,13 @@
       skillDecisions: aggSkillDecisions,
       hooksActive: totalHooksActive,
       patterns: aggPatterns,
-      doctor: aggDoctor
+      doctor: aggDoctor,
+      wakatime: aggWakatime
     };
   }
 
   // ---- WakaTime ----
-  function getWakaToken() {
-    return localStorage.getItem('wakatime_api_key');
-  }
-
-  window.showWakaAuthModal = function showWakaAuthModal() {
-    const key = prompt('Enter your WakaTime API key:');
-    if (key && key.trim()) {
-      localStorage.setItem('wakatime_api_key', key.trim());
-      location.reload();
-    }
-  };
-
-  async function fetchWakaTimeSummary(apiKey) {
-    const auth = btoa(apiKey);
-    const res = await fetch('https://wakatime.com/api/v1/users/current/summaries?range=last_7_days', {
-      headers: { 'Authorization': 'Basic ' + auth }
-    });
-    if (!res.ok) throw new Error('WakaTime API error: ' + res.status);
-    return res.json();
-  }
+  // Data fetched from gist (populated by report-status.sh), not direct API call (CORS blocked).
 
   let showBillableOnly = false;
 
@@ -2416,7 +2403,7 @@
 
     // Fetch gist contents
     const gistContents = await Promise.all(gists.map(g => fetchGistContent(g, token)));
-    const { devices, skillData, enforcement, overrides, skillTypes, skillDecisions, hooksActive, patterns, doctor } = processGistData(gistContents);
+    const { devices, skillData, enforcement, overrides, skillTypes, skillDecisions, hooksActive, patterns, doctor, wakatime } = processGistData(gistContents);
 
     // Render everything
     renderStats(devices, skillTypes, enforcement, hooksActive);
@@ -2429,19 +2416,10 @@
     renderAuditLog(commits);
     renderIssues(issues);
 
-    // WakaTime
-    const wakaKey = getWakaToken();
-    if (wakaKey) {
-      try {
-        const wakaData = await fetchWakaTimeSummary(wakaKey);
-        document.getElementById('section-wakatime-wrap').style.display = '';
-        renderWakaTime(wakaData);
-      } catch (e) {
-        console.error('WakaTime fetch error:', e);
-      }
-    } else {
+    // WakaTime (data comes from gist, not direct API call — avoids CORS)
+    if (wakatime && Array.isArray(wakatime.data) && wakatime.data.length > 0) {
       document.getElementById('section-wakatime-wrap').style.display = '';
-      document.getElementById('waka-summary').innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);grid-column:1/-1;"><p>Enter your WakaTime API key to see analytics.</p><button onclick="window.showWakaAuthModal()" style="margin-top:8px;background:var(--green);color:#000;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-family:inherit;">Connect WakaTime</button></div>';
+      renderWakaTime(wakatime);
     }
   }
 
