@@ -1353,6 +1353,24 @@
     </div>
   </div>
 
+  <!-- WakaTime Analytics (full width) -->
+  <div class="section" id="section-wakatime-wrap" style="display:none;">
+    <div class="card section-anchor" id="section-wakatime">
+      <div class="card-header">
+        <div class="card-title"><i data-lucide="clock"></i> WakaTime Analytics</div>
+        <div style="display:flex;gap:8px;">
+          <button id="waka-billable-toggle" onclick="window.toggleBillable()" style="font-size:11px;background:transparent;border:1px solid var(--border);color:var(--muted);padding:4px 10px;border-radius:6px;cursor:pointer;font-family:inherit;">Billable only</button>
+          <button onclick="window.showWakaAuthModal()" style="font-size:11px;background:transparent;border:1px solid var(--border);color:var(--muted);padding:4px 10px;border-radius:6px;cursor:pointer;font-family:inherit;">Change API key</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div id="waka-summary" style="display:grid;grid-template-columns:repeat(2,1fr);gap:var(--gap);margin-bottom:var(--gap);"></div>
+        <div id="waka-chart" style="margin-bottom:var(--gap);"></div>
+        <div id="waka-table" style="overflow-x:auto;"></div>
+      </div>
+    </div>
+  </div>
+
   <footer>The Protocol v1.6.0</footer>
 </div>
 
@@ -1386,6 +1404,10 @@
     <i data-lucide="alert-triangle"></i>
     <span>Issues</span>
   </a>
+  <a href="#section-wakatime" data-section="wakatime">
+    <i data-lucide="clock"></i>
+    <span>Hours</span>
+  </a>
 </nav>
 
 <script>
@@ -1416,7 +1438,7 @@
 
   // ---- Bottom nav active state ----
   const navLinks = document.querySelectorAll('.bottom-nav a');
-  const sections = ['section-status', 'section-doctor', 'section-health', 'section-landscape', 'section-patterns', 'section-usage', 'section-log', 'section-issues'];
+  const sections = ['section-status', 'section-doctor', 'section-health', 'section-landscape', 'section-patterns', 'section-usage', 'section-log', 'section-issues', 'section-wakatime'];
 
   function updateActiveNav() {
     const scrollY = window.scrollY + window.innerHeight / 3;
@@ -2242,6 +2264,143 @@
     };
   }
 
+  // ---- WakaTime ----
+  function getWakaToken() {
+    return localStorage.getItem('wakatime_api_key');
+  }
+
+  window.showWakaAuthModal = function showWakaAuthModal() {
+    const key = prompt('Enter your WakaTime API key:');
+    if (key && key.trim()) {
+      localStorage.setItem('wakatime_api_key', key.trim());
+      location.reload();
+    }
+  };
+
+  async function fetchWakaTimeSummary(apiKey) {
+    const auth = btoa(apiKey);
+    const res = await fetch('https://wakatime.com/api/v1/users/current/summaries?range=last_7_days', {
+      headers: { 'Authorization': 'Basic ' + auth }
+    });
+    if (!res.ok) throw new Error('WakaTime API error: ' + res.status);
+    return res.json();
+  }
+
+  let showBillableOnly = false;
+
+  window.toggleBillable = function toggleBillable() {
+    showBillableOnly = !showBillableOnly;
+    const btn = document.getElementById('waka-billable-toggle');
+    btn.textContent = showBillableOnly ? 'Show all' : 'Billable only';
+    btn.style.borderColor = showBillableOnly ? 'var(--green)' : 'var(--border)';
+    btn.style.color = showBillableOnly ? 'var(--green)' : 'var(--muted)';
+    renderWakaTime(window._wakaData);
+  };
+
+  function isNonBillable(name) {
+    const lower = name.toLowerCase();
+    return lower === 'general' || lower === 'internal' || lower === 'unknown project';
+  }
+
+  function renderWakaTime(data) {
+    if (!data) return;
+    window._wakaData = data;
+
+    const days = data.data || [];
+    const cumulative = data.cumulative_total || {};
+    const dailyAvg = data.daily_average || {};
+
+    const projectTotals = {};
+    let totalSecs = 0;
+    let billableSecs = 0;
+
+    days.forEach(function(day) {
+      (day.projects || []).forEach(function(p) {
+        projectTotals[p.name] = (projectTotals[p.name] || 0) + p.total_seconds;
+        totalSecs += p.total_seconds;
+        if (!isNonBillable(p.name)) billableSecs += p.total_seconds;
+      });
+    });
+
+    const activeProjects = Object.keys(projectTotals).filter(function(n) { return !isNonBillable(n); }).length;
+
+    const fmt = function(secs) {
+      const h = Math.floor(secs / 3600);
+      const m = Math.floor((secs % 3600) / 60);
+      return h > 0 ? h + 'h ' + m + 'm' : m + 'm';
+    };
+
+    document.getElementById('waka-summary').innerHTML =
+      '<div class="stat-card"><div class="stat-value">' + (cumulative.text || fmt(totalSecs)) + '</div><div class="stat-label">Total (7 days)</div></div>' +
+      '<div class="stat-card"><div class="stat-value">' + (dailyAvg.text || fmt(totalSecs / 7)) + '</div><div class="stat-label">Daily average</div></div>' +
+      '<div class="stat-card"><div class="stat-value">' + activeProjects + '</div><div class="stat-label">Active projects</div></div>' +
+      '<div class="stat-card"><div class="stat-value" style="color:var(--green)">' + fmt(billableSecs) + '</div><div class="stat-label">Billable hours</div></div>';
+
+    // Daily bar chart
+    const maxDaySecs = Math.max.apply(null, days.map(function(d) { return d.grand_total.total_seconds; }).concat([1]));
+    const colors = ['#3b82f6','#22c55e','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899','#f97316'];
+
+    const sortedProjects = Object.entries(projectTotals).sort(function(a,b) { return b[1] - a[1]; });
+    const projectColors = {};
+    sortedProjects.forEach(function(entry, i) {
+      projectColors[entry[0]] = isNonBillable(entry[0]) ? '#3f3f46' : colors[i % colors.length];
+    });
+
+    let chartHtml = '<div style="display:flex;flex-direction:column;gap:6px;">';
+    days.forEach(function(day) {
+      const dayLabel = day.range.text.split(',')[0].replace(/\d{4}$/, '').trim().split(' ').slice(0,2).join(' ');
+      const projects = (day.projects || [])
+        .filter(function(p) { return !showBillableOnly || !isNonBillable(p.name); })
+        .sort(function(a,b) { return b.total_seconds - a.total_seconds; });
+      const dayTotal = projects.reduce(function(s,p) { return s + p.total_seconds; }, 0);
+
+      chartHtml += '<div style="display:flex;align-items:center;gap:8px;">' +
+        '<div style="width:60px;font-size:11px;color:var(--muted);text-align:right;flex-shrink:0;">' + dayLabel + '</div>' +
+        '<div style="flex:1;display:flex;height:24px;border-radius:4px;overflow:hidden;background:var(--border);">';
+
+      projects.forEach(function(p) {
+        const pct = (p.total_seconds / maxDaySecs * 100).toFixed(1);
+        if (pct > 0.5) {
+          chartHtml += '<div title="' + p.name + ': ' + p.text + '" style="width:' + pct + '%;background:' + (projectColors[p.name] || '#3f3f46') + ';"></div>';
+        }
+      });
+
+      chartHtml += '</div><div style="width:50px;font-size:11px;color:var(--muted);flex-shrink:0;">' + fmt(dayTotal) + '</div></div>';
+    });
+    chartHtml += '</div>';
+
+    // Legend
+    chartHtml += '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">';
+    sortedProjects.slice(0, 8).forEach(function(entry) {
+      const name = entry[0];
+      if (showBillableOnly && isNonBillable(name)) return;
+      chartHtml += '<div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--muted);">' +
+        '<div style="width:8px;height:8px;border-radius:2px;background:' + projectColors[name] + ';"></div>' + name +
+      '</div>';
+    });
+    chartHtml += '</div>';
+
+    document.getElementById('waka-chart').innerHTML = chartHtml;
+
+    // Project table
+    const filtered = sortedProjects.filter(function(entry) { return !showBillableOnly || !isNonBillable(entry[0]); });
+    let tableHtml = '<table><thead><tr><th>Project</th><th>Hours</th><th>%</th><th>Type</th></tr></thead><tbody>';
+    const displayTotal = showBillableOnly ? billableSecs : totalSecs;
+
+    filtered.forEach(function(entry) {
+      const name = entry[0];
+      const secs = entry[1];
+      const pct = displayTotal > 0 ? (secs / displayTotal * 100).toFixed(1) : '0.0';
+      const type = isNonBillable(name)
+        ? '<span style="color:var(--muted);font-size:11px;">internal</span>'
+        : '<span style="color:var(--green);font-size:11px;">billable</span>';
+      tableHtml += '<tr><td>' + name + '</td><td>' + fmt(secs) + '</td><td>' + pct + '%</td><td>' + type + '</td></tr>';
+    });
+
+    tableHtml += '</tbody></table>';
+    document.getElementById('waka-table').innerHTML = tableHtml;
+  }
+
   // ---- Main init ----
   let lastRefreshDate = null;
 
@@ -2269,6 +2428,21 @@
     renderSkillChart(skillData);
     renderAuditLog(commits);
     renderIssues(issues);
+
+    // WakaTime
+    const wakaKey = getWakaToken();
+    if (wakaKey) {
+      try {
+        const wakaData = await fetchWakaTimeSummary(wakaKey);
+        document.getElementById('section-wakatime-wrap').style.display = '';
+        renderWakaTime(wakaData);
+      } catch (e) {
+        console.error('WakaTime fetch error:', e);
+      }
+    } else {
+      document.getElementById('section-wakatime-wrap').style.display = '';
+      document.getElementById('waka-summary').innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);grid-column:1/-1;"><p>Enter your WakaTime API key to see analytics.</p><button onclick="window.showWakaAuthModal()" style="margin-top:8px;background:var(--green);color:#000;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-family:inherit;">Connect WakaTime</button></div>';
+    }
   }
 
   function updateRefreshTime() {
