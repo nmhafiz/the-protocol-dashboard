@@ -965,6 +965,96 @@
     gap: var(--gap);
   }
 
+  /* ---- Doctor Details ---- */
+  .doctor-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    padding: 16px 20px;
+  }
+
+  .doctor-cat-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+
+  .doctor-cat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .doctor-cat-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .doctor-cat-count {
+    font-size: 11px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--muted);
+  }
+
+  .doctor-progress-track {
+    width: 100%;
+    height: 6px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .doctor-progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .doctor-failures {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .doctor-failure-item {
+    font-size: 11px;
+    color: var(--red);
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    line-height: 1.4;
+  }
+
+  .doctor-failure-item::before {
+    content: '\2717';
+    flex-shrink: 0;
+    font-size: 10px;
+  }
+
+  .doctor-simple {
+    padding: 16px 20px;
+    font-size: 13px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .doctor-simple strong {
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (max-width: 768px) {
+    .doctor-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
   /* ---- Bottom Navigation (Mobile) ---- */
   .bottom-nav {
     position: fixed;
@@ -1137,6 +1227,23 @@
     </div>
   </div>
 
+  <!-- Doctor Details (full width) -->
+  <div class="section">
+    <div class="card section-anchor" id="section-doctor">
+      <div class="card-header">
+        <div class="card-title"><i data-lucide="stethoscope"></i> Doctor Details</div>
+        <span class="card-badge" id="doctor-badge">--</span>
+      </div>
+      <div class="card-body" id="doctor-details-body">
+        <div style="padding:16px 20px;">
+          <div class="skeleton skeleton-line w80"></div>
+          <div class="skeleton skeleton-line"></div>
+          <div class="skeleton skeleton-line w60"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Protocol Health (full width) -->
   <div class="section">
     <div class="card section-anchor" id="section-health">
@@ -1255,6 +1362,10 @@
     <i data-lucide="users"></i>
     <span>Status</span>
   </a>
+  <a href="#section-doctor" data-section="doctor">
+    <i data-lucide="stethoscope"></i>
+    <span>Doctor</span>
+  </a>
   <a href="#section-health" data-section="health">
     <i data-lucide="shield"></i>
     <span>Health</span>
@@ -1305,7 +1416,7 @@
 
   // ---- Bottom nav active state ----
   const navLinks = document.querySelectorAll('.bottom-nav a');
-  const sections = ['section-status', 'section-health', 'section-landscape', 'section-patterns', 'section-usage', 'section-log', 'section-issues'];
+  const sections = ['section-status', 'section-doctor', 'section-health', 'section-landscape', 'section-patterns', 'section-usage', 'section-log', 'section-issues'];
 
   function updateActiveNav() {
     const scrollY = window.scrollY + window.innerHeight / 3;
@@ -1899,6 +2010,75 @@
     return d.innerHTML;
   }
 
+  // ---- Doctor Details ----
+  function renderDoctorDetails(doctorData) {
+    const container = document.getElementById('doctor-details-body');
+    const badge = document.getElementById('doctor-badge');
+
+    if (!doctorData || doctorData.total === 0) {
+      badge.textContent = 'No data';
+      container.innerHTML = '<div class="doctor-simple">No doctor data available yet.</div>';
+      container.classList.add('content-loaded');
+      return;
+    }
+
+    badge.textContent = doctorData.pass + '/' + doctorData.total + ' pass';
+
+    // If no categories array (old format), show simple view
+    if (!Array.isArray(doctorData.categories) || doctorData.categories.length === 0) {
+      const passColor = doctorData.fail > 0 ? 'var(--amber)' : 'var(--green)';
+      container.innerHTML = `<div class="doctor-simple">
+        <span>Pass: <strong style="color:var(--green)">${doctorData.pass}</strong></span>
+        <span>Fail: <strong style="color:${doctorData.fail > 0 ? 'var(--red)' : 'var(--muted)'}">${doctorData.fail}</strong></span>
+        <span>Total: <strong>${doctorData.total}</strong></span>
+      </div>`;
+      container.classList.add('content-loaded');
+      return;
+    }
+
+    let html = '<div class="doctor-grid">';
+
+    doctorData.categories.forEach(cat => {
+      const pct = cat.total > 0 ? Math.round((cat.pass / cat.total) * 100) : 0;
+      let barColor = 'var(--green)';
+      if (pct < 80) barColor = 'var(--red)';
+      else if (pct < 100) barColor = 'var(--amber)';
+
+      html += `<div class="doctor-cat-card">
+        <div class="doctor-cat-header">
+          <span class="doctor-cat-name">${escHtml(cat.name)}</span>
+          <span class="doctor-cat-count" style="color:${barColor}">${cat.pass}/${cat.total}</span>
+        </div>
+        <div class="doctor-progress-track">
+          <div class="doctor-progress-fill" style="width:0%;background:${barColor};" data-width="${pct}%"></div>
+        </div>`;
+
+      if (Array.isArray(cat.failures) && cat.failures.length > 0) {
+        html += '<div class="doctor-failures">';
+        cat.failures.forEach(f => {
+          html += `<div class="doctor-failure-item">${escHtml(f)}</div>`;
+        });
+        html += '</div>';
+      }
+
+      html += '</div>';
+    });
+
+    html += '</div>';
+    container.innerHTML = html;
+    container.classList.add('content-loaded');
+    lucide.createIcons();
+
+    // Animate progress bars
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        container.querySelectorAll('.doctor-progress-fill').forEach(bar => {
+          bar.style.width = bar.dataset.width;
+        });
+      }, 50);
+    });
+  }
+
   // ---- Process gist data ----
   function processGistData(gistContents) {
     const devices = [];
@@ -1912,6 +2092,7 @@
     let aggSkillDecisions = [];
     let totalHooksActive = 0;
     let aggPatterns = { entries: [], repeated: {} };
+    let aggDoctor = { pass: 0, fail: 0, total: 0, categories: [] };
 
     gistContents.forEach(data => {
       if (!data) return;
@@ -2018,6 +2199,24 @@
           });
         }
       }
+
+      // Doctor (use latest/largest report — categories from any device with them)
+      const doc = data.doctor;
+      if (doc && typeof doc === 'object') {
+        if (Array.isArray(doc.categories) && doc.categories.length > aggDoctor.categories.length) {
+          aggDoctor = {
+            pass: doc.pass || 0,
+            fail: doc.fail || 0,
+            total: doc.total || 0,
+            categories: doc.categories
+          };
+        } else if (!Array.isArray(doc.categories) && aggDoctor.categories.length === 0) {
+          // Old format — accumulate simple totals
+          aggDoctor.pass = Math.max(aggDoctor.pass, doc.pass || 0);
+          aggDoctor.fail = Math.max(aggDoctor.fail, doc.fail || 0);
+          aggDoctor.total = Math.max(aggDoctor.total, doc.total || 0);
+        }
+      }
     });
 
     // Sort overrides and decisions by date descending (replace space with T for cross-browser compat)
@@ -2038,7 +2237,8 @@
       skillTypes: aggSkillTypes,
       skillDecisions: aggSkillDecisions,
       hooksActive: totalHooksActive,
-      patterns: aggPatterns
+      patterns: aggPatterns,
+      doctor: aggDoctor
     };
   }
 
@@ -2057,11 +2257,12 @@
 
     // Fetch gist contents
     const gistContents = await Promise.all(gists.map(g => fetchGistContent(g, token)));
-    const { devices, skillData, enforcement, overrides, skillTypes, skillDecisions, hooksActive, patterns } = processGistData(gistContents);
+    const { devices, skillData, enforcement, overrides, skillTypes, skillDecisions, hooksActive, patterns, doctor } = processGistData(gistContents);
 
     // Render everything
     renderStats(devices, skillTypes, enforcement, hooksActive);
     renderTeamTable(devices);
+    renderDoctorDetails(doctor);
     renderProtocolHealth(enforcement, overrides, hooksActive);
     renderSkillLandscape(skillTypes, skillDecisions);
     renderPatternDetection(patterns);
