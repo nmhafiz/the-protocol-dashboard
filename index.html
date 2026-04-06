@@ -2,8 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>The Protocol — Dashboard</title>
+
+<!-- PWA Meta Tags -->
+<meta name="theme-color" content="#09090b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Protocol">
+<link rel="manifest" href="manifest.json">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -20,8 +28,15 @@
     --green: #22c55e;
     --amber: #f59e0b;
     --red: #ef4444;
+    --blue: #3b82f6;
+    --cyan: #06b6d4;
     --radius: 12px;
     --gap: 16px;
+    --bottom-nav-height: 60px;
+  }
+
+  html {
+    scroll-behavior: smooth;
   }
 
   body {
@@ -33,6 +48,29 @@
     -moz-osx-font-smoothing: grayscale;
     opacity: 0;
     animation: fadeIn 0.6s ease-out forwards;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: calc(var(--bottom-nav-height) + 16px);
+  }
+
+  /* Background dot grid pattern */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.03) 1px, transparent 0);
+    background-size: 24px 24px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Subtle radial gradient overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(34,197,94,0.03) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
   }
 
   @keyframes fadeIn {
@@ -54,15 +92,55 @@
     50% { transform: scale(1.3); opacity: 0.7; }
   }
 
+  @keyframes statusGlow {
+    0%, 100% { box-shadow: 0 0 4px rgba(34,197,94,0.4), 0 0 8px rgba(34,197,94,0.2); }
+    50% { box-shadow: 0 0 8px rgba(34,197,94,0.6), 0 0 16px rgba(34,197,94,0.3); }
+  }
+
   @keyframes slideUp {
     from { opacity: 0; transform: translateY(12px); }
     to { opacity: 1; transform: translateY(0); }
   }
 
+  @keyframes contentFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .content-loaded {
+    animation: contentFadeIn 0.4s ease-out forwards;
+  }
+
+  /* ---- Pull to refresh hint ---- */
+  .pull-hint {
+    text-align: center;
+    padding: 8px;
+    font-size: 11px;
+    color: var(--muted);
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: opacity 0.3s, transform 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .pull-hint.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .pull-hint i { width: 14px; height: 14px; }
+
   .container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 24px 24px 48px;
+    padding: 16px 16px 32px;
+    position: relative;
+    z-index: 1;
   }
 
   /* ---- Header ---- */
@@ -70,9 +148,9 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-bottom: 32px;
+    padding-bottom: 20px;
     border-bottom: 1px solid var(--border);
-    margin-bottom: 32px;
+    margin-bottom: 24px;
     flex-wrap: wrap;
     gap: 12px;
   }
@@ -84,7 +162,7 @@
   }
 
   .logo h1 {
-    font-size: 20px;
+    font-size: 17px;
     font-weight: 700;
     letter-spacing: -0.5px;
   }
@@ -125,23 +203,26 @@
     flex-shrink: 0;
   }
 
+  .header-meta .last-sync-icon { width: 14px; height: 14px; color: var(--muted); }
+
   /* ---- Stats Bar ---- */
   .stats-bar {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: var(--gap);
-    margin-bottom: 32px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
   }
 
   .stat-card {
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 20px;
+    padding: 16px;
     position: relative;
     overflow: hidden;
-    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    transition: border-color 0.3s, transform 0.2s, box-shadow 0.3s;
     animation: slideUp 0.5s ease-out backwards;
+    min-height: 44px;
   }
 
   .stat-card:nth-child(1) { animation-delay: 0.05s; }
@@ -149,16 +230,52 @@
   .stat-card:nth-child(3) { animation-delay: 0.15s; }
   .stat-card:nth-child(4) { animation-delay: 0.2s; }
 
-  .stat-card::before {
+  /* Individual accent colors per stat card */
+  .stat-card:nth-child(1)::before {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, rgba(34,197,94,0.04) 0%, transparent 60%);
+    background: linear-gradient(135deg, rgba(59,130,246,0.05) 0%, transparent 60%);
     pointer-events: none;
   }
+  .stat-card:nth-child(1) .stat-icon { background: rgba(59,130,246,0.1); }
+  .stat-card:nth-child(1) .stat-icon i { color: var(--blue); }
+  .stat-card:nth-child(1):hover { border-color: rgba(59,130,246,0.3); box-shadow: 0 0 20px rgba(59,130,246,0.08); }
+
+  .stat-card:nth-child(2)::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(34,197,94,0.05) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .stat-card:nth-child(2) .stat-icon { background: rgba(34,197,94,0.1); }
+  .stat-card:nth-child(2) .stat-icon i { color: var(--green); }
+  .stat-card:nth-child(2):hover { border-color: rgba(34,197,94,0.3); box-shadow: 0 0 20px rgba(34,197,94,0.08); }
+
+  .stat-card:nth-child(3)::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(245,158,11,0.05) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .stat-card:nth-child(3) .stat-icon { background: rgba(245,158,11,0.1); }
+  .stat-card:nth-child(3) .stat-icon i { color: var(--amber); }
+  .stat-card:nth-child(3):hover { border-color: rgba(245,158,11,0.3); box-shadow: 0 0 20px rgba(245,158,11,0.08); }
+
+  .stat-card:nth-child(4)::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(6,182,212,0.05) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .stat-card:nth-child(4) .stat-icon { background: rgba(6,182,212,0.1); }
+  .stat-card:nth-child(4) .stat-icon i { color: var(--cyan); }
+  .stat-card:nth-child(4):hover { border-color: rgba(6,182,212,0.3); box-shadow: 0 0 20px rgba(6,182,212,0.08); }
 
   .stat-card:hover {
-    border-color: #3f3f46;
     transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(0,0,0,0.3);
   }
@@ -167,14 +284,13 @@
     width: 36px;
     height: 36px;
     border-radius: 8px;
-    background: rgba(34,197,94,0.1);
     display: flex;
     align-items: center;
     justify-content: center;
     margin-bottom: 12px;
   }
 
-  .stat-icon i { color: var(--green); width: 18px; height: 18px; }
+  .stat-icon i { width: 18px; height: 18px; }
 
   .stat-number {
     font-size: 28px;
@@ -182,6 +298,7 @@
     letter-spacing: -1px;
     line-height: 1;
     margin-bottom: 4px;
+    font-variant-numeric: tabular-nums;
   }
 
   .stat-label {
@@ -193,7 +310,7 @@
   /* ---- Main Grid ---- */
   .main-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: var(--gap);
   }
 
@@ -203,14 +320,14 @@
     border: 1px solid var(--border);
     border-radius: var(--radius);
     overflow: hidden;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: border-color 0.3s, box-shadow 0.3s;
     animation: slideUp 0.5s ease-out backwards;
     animation-delay: 0.25s;
   }
 
   .card:hover {
-    border-color: #3f3f46;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    border-color: rgba(34,197,94,0.2);
+    box-shadow: 0 0 24px rgba(34,197,94,0.04), 0 4px 16px rgba(0,0,0,0.2);
   }
 
   .card-header {
@@ -219,6 +336,7 @@
     justify-content: space-between;
     padding: 16px 20px;
     border-bottom: 1px solid var(--border);
+    min-height: 52px;
   }
 
   .card-title {
@@ -247,6 +365,7 @@
   /* ---- Table ---- */
   .table-wrap {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   table {
@@ -260,7 +379,7 @@
     padding: 10px 16px;
     color: var(--muted);
     font-weight: 500;
-    font-size: 12px;
+    font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     border-bottom: 1px solid var(--border);
@@ -290,6 +409,7 @@
     align-items: center;
     gap: 8px;
     font-weight: 500;
+    min-height: 44px;
   }
 
   .device-cell i { color: var(--muted); width: 14px; height: 14px; }
@@ -301,7 +421,11 @@
     flex-shrink: 0;
   }
 
-  .status-dot.green { background: var(--green); box-shadow: 0 0 6px rgba(34,197,94,0.4); }
+  .status-dot.green {
+    background: var(--green);
+    box-shadow: 0 0 6px rgba(34,197,94,0.4);
+    animation: statusGlow 2s ease-in-out infinite;
+  }
   .status-dot.amber { background: var(--amber); box-shadow: 0 0 6px rgba(245,158,11,0.4); }
   .status-dot.red { background: var(--red); box-shadow: 0 0 6px rgba(239,68,68,0.4); }
 
@@ -328,6 +452,7 @@
     padding: 16px 20px;
     max-height: 480px;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .timeline::-webkit-scrollbar { width: 4px; }
@@ -339,6 +464,7 @@
     gap: 12px;
     padding: 10px 0;
     position: relative;
+    min-height: 44px;
   }
 
   .timeline-item:not(:last-child)::after {
@@ -408,7 +534,14 @@
     font-size: 13px;
   }
 
-  .bar-name { font-weight: 500; }
+  .bar-name {
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .bar-name i { width: 14px; height: 14px; color: var(--green); }
 
   .bar-value {
     color: var(--muted);
@@ -429,6 +562,13 @@
     background: linear-gradient(90deg, #16a34a, #22c55e);
     transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
   }
+
+  /* Gradient bar colors - applied by index via JS */
+  .bar-fill.bar-color-0 { background: linear-gradient(90deg, #2563eb, #3b82f6); }
+  .bar-fill.bar-color-1 { background: linear-gradient(90deg, #16a34a, #22c55e); }
+  .bar-fill.bar-color-2 { background: linear-gradient(90deg, #d97706, #f59e0b); }
+  .bar-fill.bar-color-3 { background: linear-gradient(90deg, #0891b2, #06b6d4); }
+  .bar-fill.bar-color-4 { background: linear-gradient(90deg, #e11d48, #f43f5e); }
 
   .bar-breakdown {
     margin-top: 8px;
@@ -458,6 +598,8 @@
     display: flex;
     align-items: center;
     gap: 4px;
+    min-height: 44px;
+    font-family: 'Inter', sans-serif;
   }
 
   .bar-toggle:hover { color: var(--text); }
@@ -476,6 +618,7 @@
     padding: 14px 20px;
     border-bottom: 1px solid rgba(39,39,42,0.5);
     transition: background 0.15s;
+    min-height: 44px;
   }
 
   .issue-item:last-child { border-bottom: none; }
@@ -582,7 +725,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 100;
+    z-index: 200;
     animation: fadeIn 0.3s ease-out;
     padding: 24px;
   }
@@ -591,7 +734,7 @@
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 16px;
-    padding: 32px;
+    padding: 28px;
     max-width: 440px;
     width: 100%;
     animation: slideUp 0.3s ease-out;
@@ -612,21 +755,22 @@
     color: var(--muted);
     font-size: 13px;
     line-height: 1.6;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
   }
 
   .modal input {
     width: 100%;
-    padding: 10px 14px;
+    padding: 12px 14px;
     background: var(--bg);
     border: 1px solid var(--border);
     border-radius: 8px;
     color: var(--text);
     font-family: 'Inter', sans-serif;
-    font-size: 13px;
+    font-size: 14px;
     outline: none;
     transition: border-color 0.2s;
     margin-bottom: 16px;
+    min-height: 44px;
   }
 
   .modal input:focus { border-color: var(--green); }
@@ -635,16 +779,17 @@
 
   .modal button {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     background: var(--green);
     color: #09090b;
     border: none;
     border-radius: 8px;
     font-family: 'Inter', sans-serif;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     transition: opacity 0.15s;
+    min-height: 44px;
   }
 
   .modal button:hover { opacity: 0.9; }
@@ -656,30 +801,171 @@
     display: none;
   }
 
+  .modal .help-box {
+    background: rgba(34,197,94,0.06);
+    border: 1px solid rgba(34,197,94,0.15);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .modal .help-box strong {
+    color: var(--text);
+    display: block;
+    margin-bottom: 4px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .modal .help-box strong i { width: 14px; height: 14px; color: var(--green); }
+
+  .modal .help-box .help-path {
+    color: var(--green);
+    font-weight: 500;
+    font-size: 11px;
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .modal .help-box .permissions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+  }
+
+  .modal .help-box .perm-tag {
+    font-size: 10px;
+    font-weight: 600;
+    background: rgba(34,197,94,0.12);
+    color: var(--green);
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
   /* ---- Footer ---- */
   footer {
     text-align: center;
-    padding: 32px 0 0;
+    padding: 24px 0 0;
     font-size: 12px;
     color: #52525b;
     border-top: 1px solid var(--border);
     margin-top: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
   }
 
-  /* ---- Responsive ---- */
-  @media (max-width: 768px) {
-    .container { padding: 16px 16px 32px; }
-    header { padding-bottom: 20px; margin-bottom: 24px; }
-    .stats-bar { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-    .main-grid { grid-template-columns: 1fr; }
-    .stat-number { font-size: 24px; }
-    .logo h1 { font-size: 17px; }
+  footer .footer-version {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.5px;
   }
 
-  @media (max-width: 480px) {
-    .stats-bar { grid-template-columns: 1fr; }
-    thead th { font-size: 11px; padding: 8px 12px; }
-    tbody td { padding: 10px 12px; font-size: 12px; }
+  footer .footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  footer .footer-brand i { width: 12px; height: 12px; color: #3f3f46; }
+
+  /* ---- Bottom Navigation (Mobile) ---- */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: var(--bottom-nav-height);
+    background: rgba(24,24,27,0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    z-index: 100;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  .bottom-nav a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-decoration: none;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 500;
+    padding: 8px 12px;
+    min-width: 64px;
+    min-height: 44px;
+    justify-content: center;
+    transition: color 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .bottom-nav a.active,
+  .bottom-nav a:hover {
+    color: var(--green);
+  }
+
+  .bottom-nav a i { width: 20px; height: 20px; }
+
+  /* ---- Desktop Overrides (min-width: 640px) ---- */
+  @media (min-width: 640px) {
+    .container {
+      padding: 24px 24px 48px;
+    }
+
+    header {
+      padding-bottom: 32px;
+      margin-bottom: 32px;
+    }
+
+    .logo h1 {
+      font-size: 20px;
+    }
+
+    .stats-bar {
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--gap);
+      margin-bottom: 32px;
+    }
+
+    .stat-card {
+      padding: 20px;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .main-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    body {
+      padding-bottom: 0;
+    }
+
+    .bottom-nav {
+      display: none;
+    }
+
+    .pull-hint {
+      display: none;
+    }
+  }
+
+  /* ---- Section anchors ---- */
+  .section-anchor {
+    scroll-margin-top: 16px;
   }
 </style>
 </head>
@@ -688,7 +974,17 @@
 <div id="auth-modal" class="modal-overlay" style="display:none;">
   <div class="modal">
     <h2><i data-lucide="shield" style="width:20px;height:20px;"></i> Authentication</h2>
-    <p>Enter a GitHub Personal Access Token to access The Protocol ecosystem data. The token needs <code>gist</code> and <code>repo</code> scopes.</p>
+    <p>Enter a GitHub Personal Access Token to access The Protocol ecosystem data.</p>
+    <div class="help-box">
+      <strong><i data-lucide="info"></i> How to get your token</strong>
+      <span class="help-path">GitHub &rarr; Settings &rarr; Developer Settings &rarr; Personal Access Tokens &rarr; Fine-grained &rarr; Generate new</span>
+      Required permissions:
+      <div class="permissions">
+        <span class="perm-tag">Gists (read)</span>
+        <span class="perm-tag">Issues (read)</span>
+        <span class="perm-tag">Contents (read)</span>
+      </div>
+    </div>
     <input type="password" id="pat-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
     <button id="pat-submit">Connect</button>
     <div class="error-msg" id="pat-error">Invalid token. Please check and try again.</div>
@@ -696,13 +992,22 @@
 </div>
 
 <div class="container">
+  <!-- Pull to refresh hint -->
+  <div class="pull-hint" id="pull-hint">
+    <i data-lucide="refresh-cw"></i>
+    Pull to refresh
+  </div>
+
   <header>
     <div class="logo">
       <div class="logo-icon"><i data-lucide="terminal" style="width:18px;height:18px;"></i></div>
       <h1>The Protocol</h1>
     </div>
     <div class="header-meta">
-      <span id="last-refresh">—</span>
+      <span id="last-refresh" style="display:flex;align-items:center;gap:6px;">
+        <i data-lucide="clock" class="last-sync-icon"></i>
+        <span id="last-refresh-text">--</span>
+      </span>
       <div class="refresh-indicator">
         <span class="pulse-dot"></span>
         <span>Auto-refresh</span>
@@ -712,8 +1017,8 @@
 
   <!-- Stats Bar -->
   <div class="stats-bar" id="stats-bar">
-    <div class="stat-card">
-      <div class="stat-icon"><i data-lucide="monitor"></i></div>
+    <div class="stat-card" id="section-status">
+      <div class="stat-icon"><i data-lucide="smartphone"></i></div>
       <div class="stat-number" id="stat-devices"><div class="skeleton skeleton-stat"></div></div>
       <div class="stat-label">Total Devices</div>
     </div>
@@ -739,10 +1044,10 @@
     <!-- Left Column -->
     <div style="display:flex;flex-direction:column;gap:var(--gap);">
       <!-- Team Status -->
-      <div class="card">
+      <div class="card section-anchor" id="section-team">
         <div class="card-header">
           <div class="card-title"><i data-lucide="users"></i> Team Status</div>
-          <span class="card-badge" id="device-count-badge">—</span>
+          <span class="card-badge" id="device-count-badge">--</span>
         </div>
         <div class="card-body">
           <div class="table-wrap" id="team-table">
@@ -758,10 +1063,10 @@
       </div>
 
       <!-- Audit Log -->
-      <div class="card">
+      <div class="card section-anchor" id="section-log">
         <div class="card-header">
-          <div class="card-title"><i data-lucide="git-commit"></i> Audit Log</div>
-          <span class="card-badge" id="commit-count-badge">—</span>
+          <div class="card-title"><i data-lucide="git-branch"></i> Audit Log</div>
+          <span class="card-badge" id="commit-count-badge">--</span>
         </div>
         <div class="card-body">
           <div class="timeline" id="audit-log">
@@ -777,10 +1082,10 @@
     <!-- Right Column -->
     <div style="display:flex;flex-direction:column;gap:var(--gap);">
       <!-- Skill Usage -->
-      <div class="card">
+      <div class="card section-anchor" id="section-usage">
         <div class="card-header">
-          <div class="card-title"><i data-lucide="bar-chart-3"></i> Skill Usage</div>
-          <span class="card-badge" id="skill-count-badge">—</span>
+          <div class="card-title"><i data-lucide="trending-up"></i> Skill Usage</div>
+          <span class="card-badge" id="skill-count-badge">--</span>
         </div>
         <div class="card-body">
           <div class="bar-chart" id="skill-chart">
@@ -799,10 +1104,10 @@
       </div>
 
       <!-- Open Issues -->
-      <div class="card">
+      <div class="card section-anchor" id="section-issues">
         <div class="card-header">
           <div class="card-title"><i data-lucide="alert-triangle"></i> Open Issues</div>
-          <span class="card-badge" id="issue-count-badge">—</span>
+          <span class="card-badge" id="issue-count-badge">--</span>
         </div>
         <div class="card-body">
           <div class="issues-list" id="issues-list">
@@ -815,8 +1120,31 @@
     </div>
   </div>
 
-  <footer>The Protocol v1.3.0 — Private Ecosystem</footer>
+  <footer>
+    <span class="footer-version">The Protocol v1.4.0</span>
+    <span class="footer-brand"><i data-lucide="terminal"></i> Made with The Protocol</span>
+  </footer>
 </div>
+
+<!-- Bottom Navigation (Mobile) -->
+<nav class="bottom-nav" id="bottom-nav">
+  <a href="#section-status" data-section="status">
+    <i data-lucide="activity"></i>
+    <span>Status</span>
+  </a>
+  <a href="#section-usage" data-section="usage">
+    <i data-lucide="trending-up"></i>
+    <span>Usage</span>
+  </a>
+  <a href="#section-log" data-section="log">
+    <i data-lucide="git-branch"></i>
+    <span>Log</span>
+  </a>
+  <a href="#section-issues" data-section="issues">
+    <i data-lucide="alert-triangle"></i>
+    <span>Issues</span>
+  </a>
+</nav>
 
 <script>
 (function() {
@@ -824,6 +1152,47 @@
 
   // ---- Lucide icons ----
   lucide.createIcons();
+
+  // ---- Service Worker Registration ----
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    });
+  }
+
+  // ---- Pull to refresh hint ----
+  let lastScrollY = 0;
+  const pullHint = document.getElementById('pull-hint');
+  window.addEventListener('scroll', () => {
+    const scrollY = window.scrollY;
+    if (scrollY <= 0 && lastScrollY <= 10) {
+      pullHint.classList.add('visible');
+      setTimeout(() => pullHint.classList.remove('visible'), 2000);
+    }
+    lastScrollY = scrollY;
+  }, { passive: true });
+
+  // ---- Bottom nav active state ----
+  const navLinks = document.querySelectorAll('.bottom-nav a');
+  const sections = ['section-status', 'section-usage', 'section-log', 'section-issues'];
+
+  function updateActiveNav() {
+    const scrollY = window.scrollY + window.innerHeight / 3;
+    let activeId = sections[0];
+    sections.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && el.offsetTop <= scrollY) {
+        activeId = id;
+      }
+    });
+    navLinks.forEach(link => {
+      const href = link.getAttribute('href').replace('#', '');
+      link.classList.toggle('active', href === activeId);
+    });
+  }
+
+  window.addEventListener('scroll', updateActiveNav, { passive: true });
+  updateActiveNav();
 
   // ---- Token management ----
   function getToken() {
@@ -879,7 +1248,7 @@
     const date = new Date(dateStr);
     const diff = Math.floor((now - date) / 1000);
     if (diff < 60) return 'just now';
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 3600) return `${Math.floor(diff / 60)} min ago`;
     if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
     if (diff < 172800) return 'yesterday';
     if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
@@ -953,10 +1322,20 @@
     const passCount = devices.filter(d => d.doctorStatus === 'pass').length;
     const uptime = totalDevices > 0 ? Math.round((passCount / totalDevices) * 100) : 100;
 
-    document.getElementById('stat-devices').textContent = totalDevices;
-    document.getElementById('stat-skills').textContent = skillsCount;
-    document.getElementById('stat-issues').textContent = issueCount;
-    document.getElementById('stat-uptime').textContent = uptime + '%';
+    const statDevices = document.getElementById('stat-devices');
+    const statSkills = document.getElementById('stat-skills');
+    const statIssues = document.getElementById('stat-issues');
+    const statUptime = document.getElementById('stat-uptime');
+
+    statDevices.textContent = totalDevices;
+    statSkills.textContent = skillsCount;
+    statIssues.textContent = issueCount;
+    statUptime.textContent = uptime + '%';
+
+    // Add fade-in class
+    [statDevices, statSkills, statIssues, statUptime].forEach(el => {
+      el.classList.add('content-loaded');
+    });
   }
 
   function renderTeamTable(devices) {
@@ -970,7 +1349,11 @@
     }
 
     let html = `<table><thead><tr>
-      <th>Device</th><th>Version</th><th>Last Sync</th><th>Skills</th><th>Doctor</th>
+      <th><i data-lucide="smartphone" style="width:12px;height:12px;display:inline;vertical-align:middle;margin-right:4px;"></i>Device</th>
+      <th>Version</th>
+      <th><i data-lucide="clock" style="width:12px;height:12px;display:inline;vertical-align:middle;margin-right:4px;"></i>Last Sync</th>
+      <th>Skills</th>
+      <th><i data-lucide="shield" style="width:12px;height:12px;display:inline;vertical-align:middle;margin-right:4px;"></i>Doctor</th>
     </tr></thead><tbody>`;
 
     devices.forEach(d => {
@@ -980,16 +1363,17 @@
         : `<span class="doctor-fail"><i data-lucide="x-circle"></i> Fail</span>`;
 
       html += `<tr>
-        <td><div class="device-cell"><span class="status-dot ${status}"></span><i data-lucide="monitor"></i> ${escHtml(d.name)}</div></td>
-        <td style="color:var(--muted);">${escHtml(d.version || '—')}</td>
+        <td><div class="device-cell"><span class="status-dot ${status}"></span><i data-lucide="smartphone"></i> ${escHtml(d.name)}</div></td>
+        <td style="color:var(--muted);">${escHtml(d.version || '--')}</td>
         <td style="color:var(--muted);">${relativeTime(d.lastSync)}</td>
-        <td>${d.skillCount ?? '—'}</td>
+        <td>${d.skillCount ?? '--'}</td>
         <td>${doctorHtml}</td>
       </tr>`;
     });
 
     html += '</tbody></table>';
     container.innerHTML = html;
+    container.classList.add('content-loaded');
     lucide.createIcons();
   }
 
@@ -1013,6 +1397,7 @@
     sorted.forEach(([name, count], idx) => {
       const pct = Math.round((count / maxVal) * 100);
       const id = `breakdown-${idx}`;
+      const colorClass = `bar-color-${idx % 5}`;
 
       // Build user breakdown
       let breakdownHtml = '';
@@ -1031,16 +1416,17 @@
 
       html += `<div class="bar-item">
         <div class="bar-label">
-          <span class="bar-name">${escHtml(name)}</span>
-          <span class="bar-value">${count} · ${pct}%</span>
+          <span class="bar-name"><i data-lucide="zap"></i>${escHtml(name)}</span>
+          <span class="bar-value">${count} &middot; ${pct}%</span>
         </div>
-        <div class="bar-track"><div class="bar-fill" style="width:0%;" data-width="${pct}%"></div></div>
+        <div class="bar-track"><div class="bar-fill ${colorClass}" style="width:0%;" data-width="${pct}%"></div></div>
         ${users.length > 0 ? `<button class="bar-toggle" onclick="toggleBreakdown('${id}', this)"><i data-lucide="chevron-down"></i> ${users.length} user${users.length !== 1 ? 's' : ''}</button>` : ''}
         ${breakdownHtml}
       </div>`;
     });
 
     container.innerHTML = html;
+    container.classList.add('content-loaded');
     lucide.createIcons();
 
     // Animate bars
@@ -1065,7 +1451,7 @@
     document.getElementById('commit-count-badge').textContent = `${commits.length} commit${commits.length !== 1 ? 's' : ''}`;
 
     if (commits.length === 0) {
-      container.innerHTML = `<div class="empty-state"><i data-lucide="git-commit"></i><p>No commits found</p></div>`;
+      container.innerHTML = `<div class="empty-state"><i data-lucide="git-branch"></i><p>No commits found</p></div>`;
       lucide.createIcons();
       return;
     }
@@ -1082,14 +1468,15 @@
         <div class="timeline-content">
           <div class="timeline-message">${escHtml(msg)}</div>
           <div class="timeline-meta">
-            <i data-lucide="git-commit"></i>
-            ${escHtml(author)} · ${date ? relativeTime(date) : '—'}
+            <i data-lucide="git-branch"></i>
+            ${escHtml(author)} &middot; ${date ? relativeTime(date) : '--'}
           </div>
         </div>
       </div>`;
     });
 
     container.innerHTML = html;
+    container.classList.add('content-loaded');
     lucide.createIcons();
   }
 
@@ -1098,7 +1485,7 @@
     document.getElementById('issue-count-badge').textContent = `${issues.length} open`;
 
     if (issues.length === 0) {
-      container.innerHTML = `<div class="empty-state"><i data-lucide="check-circle"></i><p>No open issues — all clear</p></div>`;
+      container.innerHTML = `<div class="empty-state"><i data-lucide="check-circle"></i><p>No open issues -- all clear</p></div>`;
       lucide.createIcons();
       return;
     }
@@ -1109,12 +1496,13 @@
         <div class="issue-icon"><i data-lucide="alert-triangle"></i></div>
         <div class="issue-content">
           <div class="issue-title"><a href="${escHtml(issue.html_url)}" target="_blank" rel="noopener">${escHtml(issue.title)}</a></div>
-          <div class="issue-meta">${escHtml(issue.user?.login || 'unknown')} · ${relativeTime(issue.created_at)}</div>
+          <div class="issue-meta">${escHtml(issue.user?.login || 'unknown')} &middot; ${relativeTime(issue.created_at)}</div>
         </div>
       </div>`;
     });
 
     container.innerHTML = html;
+    container.classList.add('content-loaded');
     lucide.createIcons();
   }
 
@@ -1137,7 +1525,7 @@
       if (data.device || data.hostname) {
         devices.push({
           name: data.device || data.hostname || 'Unknown',
-          version: data.version || data.claude_version || '—',
+          version: data.version || data.claude_version || '--',
           lastSync: data.timestamp || data.last_sync || data.updated_at || new Date().toISOString(),
           skillCount: data.skills_count || (data.skills ? Object.keys(data.skills).length : 0),
           doctorStatus: data.doctor_status || data.doctor || (data.healthy ? 'pass' : 'fail') || 'pass'
@@ -1162,6 +1550,8 @@
   }
 
   // ---- Main init ----
+  let lastRefreshDate = null;
+
   async function init(token) {
     updateRefreshTime();
 
@@ -1185,10 +1575,22 @@
   }
 
   function updateRefreshTime() {
-    const el = document.getElementById('last-refresh');
-    const now = new Date();
-    el.textContent = `Updated ${now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
+    lastRefreshDate = new Date();
+    updateRelativeRefreshTime();
   }
+
+  function updateRelativeRefreshTime() {
+    const el = document.getElementById('last-refresh-text');
+    if (!lastRefreshDate) { el.textContent = '--'; return; }
+    const diff = Math.floor((Date.now() - lastRefreshDate.getTime()) / 1000);
+    if (diff < 10) el.textContent = 'Updated just now';
+    else if (diff < 60) el.textContent = `Updated ${diff}s ago`;
+    else if (diff < 3600) el.textContent = `Updated ${Math.floor(diff / 60)} min ago`;
+    else el.textContent = `Updated ${Math.floor(diff / 3600)}h ago`;
+  }
+
+  // Update the relative timestamp every 30 seconds
+  setInterval(updateRelativeRefreshTime, 30000);
 
   // ---- Boot ----
   const token = getToken();
