@@ -519,6 +519,237 @@
     margin-top: 2px;
   }
 
+  /* ---- Protocol Health ---- */
+  .enforcement-bars {
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .enforcement-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .enforcement-bar-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    width: 60px;
+    flex-shrink: 0;
+  }
+
+  .enforcement-bar-track {
+    flex: 1;
+    height: 10px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 5px;
+    overflow: hidden;
+  }
+
+  .enforcement-bar-fill {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .enforcement-bar-count {
+    font-size: 13px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    min-width: 36px;
+    text-align: right;
+  }
+
+  .override-list {
+    padding: 0;
+  }
+
+  .override-item {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 10px 20px;
+    border-bottom: 1px solid rgba(39,39,42,0.5);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .override-item:last-child { border-bottom: none; }
+
+  .override-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--amber);
+    flex-shrink: 0;
+    margin-top: 7px;
+  }
+
+  .override-content { flex: 1; min-width: 0; }
+
+  .override-hook {
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .override-reason {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 2px;
+  }
+
+  .override-date {
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .hook-status-inline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--green);
+    border-top: 1px solid var(--border);
+  }
+
+  .hook-status-inline .hook-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 6px rgba(34,197,94,0.4);
+    flex-shrink: 0;
+  }
+
+  .subsection-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+    padding: 14px 20px 6px;
+    border-bottom: 1px solid rgba(39,39,42,0.3);
+  }
+
+  /* ---- Skill Landscape ---- */
+  .skill-breakdown-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 16px 20px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  .skill-breakdown-row .sbl-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+  }
+
+  .skill-breakdown-row .sbl-item strong {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .skill-breakdown-row .sbl-sep {
+    color: #3f3f46;
+    margin: 0 4px;
+    user-select: none;
+  }
+
+  .decision-list {
+    padding: 0;
+  }
+
+  .decision-item {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 10px 20px;
+    border-bottom: 1px solid rgba(39,39,42,0.5);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .decision-item:last-child { border-bottom: none; }
+
+  .decision-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 7px;
+  }
+
+  .decision-dot.published { background: var(--green); }
+  .decision-dot.no-skill { background: var(--muted); }
+
+  .decision-content { flex: 1; min-width: 0; }
+
+  .decision-action {
+    font-weight: 500;
+  }
+
+  .decision-action.published { color: var(--green); }
+  .decision-action.no-skill { color: var(--muted); }
+
+  .decision-reason {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 2px;
+  }
+
+  .decision-date {
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .user-col {
+    color: var(--cyan);
+    font-weight: 500;
+    font-size: 12px;
+  }
+
+  .skill-types-col {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .skill-types-col .proven-count {
+    color: var(--green);
+    font-weight: 600;
+  }
+
+  .protocol-enforced-msg {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 20px;
+    font-size: 13px;
+    color: var(--green);
+    font-weight: 500;
+  }
+
+  .protocol-enforced-msg i {
+    width: 16px;
+    height: 16px;
+    color: var(--green);
+  }
+
   /* ---- Empty State ---- */
   .empty-state {
     display: flex;
@@ -880,9 +1111,9 @@
     <span class="stat-sep">&middot;</span>
     <span class="stat"><i data-lucide="zap"></i> <strong id="stat-skills" style="color:var(--green)"><span class="skeleton skeleton-stat"></span></strong> Skills</span>
     <span class="stat-sep">&middot;</span>
-    <span class="stat"><i data-lucide="alert-circle"></i> <strong id="stat-issues" style="color:var(--amber)"><span class="skeleton skeleton-stat"></span></strong> Issues</span>
+    <span class="stat"><i data-lucide="anchor"></i> <strong id="stat-hooks" style="color:var(--amber)"><span class="skeleton skeleton-stat"></span></strong> Hooks Active</span>
     <span class="stat-sep">&middot;</span>
-    <span class="stat"><i data-lucide="activity"></i> <strong id="stat-uptime" style="color:var(--cyan)"><span class="skeleton skeleton-stat"></span></strong> Uptime</span>
+    <span class="stat"><i data-lucide="shield-check"></i> <strong id="stat-score" style="color:var(--cyan)"><span class="skeleton skeleton-stat"></span></strong> Protocol Score</span>
   </div>
 
   <!-- Team Status (full width) -->
@@ -901,6 +1132,40 @@
             <div class="skeleton skeleton-line"></div>
             <div class="skeleton skeleton-line w80"></div>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Protocol Health (full width) -->
+  <div class="section">
+    <div class="card section-anchor" id="section-health">
+      <div class="card-header">
+        <div class="card-title"><i data-lucide="shield"></i> Protocol Health</div>
+        <span class="card-badge" id="health-badge">--</span>
+      </div>
+      <div class="card-body" id="protocol-health-body">
+        <div style="padding:16px 20px;">
+          <div class="skeleton skeleton-line w80"></div>
+          <div class="skeleton skeleton-line"></div>
+          <div class="skeleton skeleton-line w60"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Skill Landscape (full width) -->
+  <div class="section">
+    <div class="card section-anchor" id="section-landscape">
+      <div class="card-header">
+        <div class="card-title"><i data-lucide="zap"></i> Skill Landscape</div>
+        <span class="card-badge" id="landscape-badge">--</span>
+      </div>
+      <div class="card-body" id="skill-landscape-body">
+        <div style="padding:16px 20px;">
+          <div class="skeleton skeleton-line w80"></div>
+          <div class="skeleton skeleton-line"></div>
+          <div class="skeleton skeleton-line w60"></div>
         </div>
       </div>
     </div>
@@ -973,9 +1238,13 @@
     <i data-lucide="users"></i>
     <span>Status</span>
   </a>
-  <a href="#section-usage" data-section="usage">
-    <i data-lucide="bar-chart-3"></i>
-    <span>Usage</span>
+  <a href="#section-health" data-section="health">
+    <i data-lucide="shield"></i>
+    <span>Health</span>
+  </a>
+  <a href="#section-landscape" data-section="landscape">
+    <i data-lucide="zap"></i>
+    <span>Skills</span>
   </a>
   <a href="#section-log" data-section="log">
     <i data-lucide="git-branch"></i>
@@ -1015,7 +1284,7 @@
 
   // ---- Bottom nav active state ----
   const navLinks = document.querySelectorAll('.bottom-nav a');
-  const sections = ['section-status', 'section-usage', 'section-log', 'section-issues'];
+  const sections = ['section-status', 'section-health', 'section-landscape', 'section-usage', 'section-log', 'section-issues'];
 
   function updateActiveNav() {
     const scrollY = window.scrollY + window.innerHeight / 3;
@@ -1177,23 +1446,37 @@
   }
 
   // ---- Render functions ----
-  function renderStats(devices, skillsCount, issueCount) {
+  function renderStats(devices, skillTypes, enforcement, hooksActive) {
     const totalDevices = devices.length;
-    const passCount = devices.filter(d => d.doctorStatus === 'pass').length;
-    const uptime = totalDevices > 0 ? Math.round((passCount / totalDevices) * 100) : 100;
+
+    // Skills display: "Xc / Yp" (community / proven)
+    const community = (skillTypes && skillTypes.community) || 0;
+    const proven = (skillTypes && skillTypes.proven) || 0;
+    const skillsLabel = `${community}c / ${proven}p`;
+
+    // Protocol Score = allows / (allows + blocks) * 100
+    let scoreLabel = '\u2014';
+    if (enforcement) {
+      const allows = enforcement.allows || 0;
+      const blocks = enforcement.blocks || 0;
+      const total = allows + blocks;
+      if (total > 0) {
+        scoreLabel = Math.round((allows / total) * 100) + '%';
+      }
+    }
 
     const statDevices = document.getElementById('stat-devices');
     const statSkills = document.getElementById('stat-skills');
-    const statIssues = document.getElementById('stat-issues');
-    const statUptime = document.getElementById('stat-uptime');
+    const statHooks = document.getElementById('stat-hooks');
+    const statScore = document.getElementById('stat-score');
 
     statDevices.textContent = totalDevices;
-    statSkills.textContent = skillsCount;
-    statIssues.textContent = issueCount;
-    statUptime.textContent = uptime + '%';
+    statSkills.textContent = skillsLabel;
+    statHooks.textContent = hooksActive || 0;
+    statScore.textContent = scoreLabel;
 
     // Add fade-in class
-    [statDevices, statSkills, statIssues, statUptime].forEach(el => {
+    [statDevices, statSkills, statHooks, statScore].forEach(el => {
       el.classList.add('content-loaded');
     });
   }
@@ -1210,9 +1493,11 @@
 
     let html = `<table><thead><tr>
       <th><i data-lucide="smartphone" style="width:12px;height:12px;display:inline;vertical-align:middle;margin-right:4px;"></i>Device</th>
+      <th><i data-lucide="github" style="width:12px;height:12px;display:inline;vertical-align:middle;margin-right:4px;"></i>User</th>
       <th>Version</th>
       <th><i data-lucide="clock" style="width:12px;height:12px;display:inline;vertical-align:middle;margin-right:4px;"></i>Last Sync</th>
       <th>Skills</th>
+      <th>Types</th>
       <th><i data-lucide="shield" style="width:12px;height:12px;display:inline;vertical-align:middle;margin-right:4px;"></i>Doctor</th>
     </tr></thead><tbody>`;
 
@@ -1222,11 +1507,21 @@
         ? `<span class="doctor-pass"><i data-lucide="check-circle"></i> Pass</span>`
         : `<span class="doctor-fail"><i data-lucide="x-circle"></i> Fail</span>`;
 
+      // Skill types breakdown
+      const st = d.skillTypes || {};
+      const stCommunity = st.community || 0;
+      const stProven = st.proven || 0;
+      const skillTypesHtml = (stCommunity || stProven)
+        ? `<span class="skill-types-col">${stCommunity}c / <span class="proven-count">${stProven}p</span></span>`
+        : `<span style="color:var(--muted);">--</span>`;
+
       html += `<tr>
         <td><div class="device-cell"><span class="status-dot ${status}"></span><i data-lucide="smartphone"></i> ${escHtml(d.name)}</div></td>
+        <td><span class="user-col">${d.user ? escHtml(d.user) : '--'}</span></td>
         <td style="color:var(--muted);">${escHtml(d.version || '--')}</td>
         <td style="color:var(--muted);">${relativeTime(d.lastSync)}</td>
         <td>${d.skillCount ?? '--'}</td>
+        <td>${skillTypesHtml}</td>
         <td>${doctorHtml}</td>
       </tr>`;
     });
@@ -1298,6 +1593,148 @@
         });
       }, 50);
     });
+  }
+
+  // ---- Protocol Health ----
+  function renderProtocolHealth(enforcement, overrides, hooksActive) {
+    const container = document.getElementById('protocol-health-body');
+    const totalActions = (enforcement.blocks || 0) + (enforcement.warns || 0) + (enforcement.allows || 0);
+
+    // Badge
+    const badge = document.getElementById('health-badge');
+    if (totalActions > 0) {
+      const score = Math.round(((enforcement.allows || 0) / ((enforcement.allows || 0) + (enforcement.blocks || 0)) || 0) * 100);
+      badge.textContent = score + '% pass';
+    } else {
+      badge.textContent = 'No data';
+    }
+
+    let html = '';
+
+    // A) Enforcement Stats
+    html += `<div class="subsection-label">Enforcement Stats</div>`;
+    if (totalActions > 0) {
+      const maxBar = Math.max(enforcement.blocks || 0, enforcement.warns || 0, enforcement.allows || 0, 1);
+      html += `<div class="enforcement-bars">`;
+
+      // Blocks
+      const blockPct = Math.round(((enforcement.blocks || 0) / maxBar) * 100);
+      html += `<div class="enforcement-bar-row">
+        <span class="enforcement-bar-label" style="color:var(--red);">Blocks</span>
+        <div class="enforcement-bar-track">
+          <div class="enforcement-bar-fill" style="width:${blockPct}%;background:var(--red);" data-width="${blockPct}%"></div>
+        </div>
+        <span class="enforcement-bar-count" style="color:var(--red);">${enforcement.blocks || 0}</span>
+      </div>`;
+
+      // Warns
+      const warnPct = Math.round(((enforcement.warns || 0) / maxBar) * 100);
+      html += `<div class="enforcement-bar-row">
+        <span class="enforcement-bar-label" style="color:var(--amber);">Warns</span>
+        <div class="enforcement-bar-track">
+          <div class="enforcement-bar-fill" style="width:${warnPct}%;background:var(--amber);" data-width="${warnPct}%"></div>
+        </div>
+        <span class="enforcement-bar-count" style="color:var(--amber);">${enforcement.warns || 0}</span>
+      </div>`;
+
+      // Allows
+      const allowPct = Math.round(((enforcement.allows || 0) / maxBar) * 100);
+      html += `<div class="enforcement-bar-row">
+        <span class="enforcement-bar-label" style="color:var(--green);">Allows</span>
+        <div class="enforcement-bar-track">
+          <div class="enforcement-bar-fill" style="width:${allowPct}%;background:var(--green);" data-width="${allowPct}%"></div>
+        </div>
+        <span class="enforcement-bar-count" style="color:var(--green);">${enforcement.allows || 0}</span>
+      </div>`;
+
+      html += `</div>`;
+    } else {
+      html += `<div style="padding:16px 20px;color:var(--muted);font-size:13px;">No enforcement data available</div>`;
+    }
+
+    // B) Recent Overrides
+    html += `<div class="subsection-label">Recent Overrides</div>`;
+    if (overrides && overrides.length > 0) {
+      html += `<div class="override-list">`;
+      overrides.slice(0, 10).forEach(o => {
+        const dateStr = o.date ? relativeTime(o.date) : '--';
+        html += `<div class="override-item">
+          <div class="override-dot"></div>
+          <div class="override-content">
+            <div class="override-hook">${escHtml(o.hook || 'Unknown hook')}</div>
+            <div class="override-reason">${escHtml(o.reason || 'No reason given')}</div>
+          </div>
+          <span class="override-date">${dateStr}</span>
+        </div>`;
+      });
+      html += `</div>`;
+    } else {
+      html += `<div class="protocol-enforced-msg"><i data-lucide="check-circle"></i> No overrides \u2014 protocol fully enforced</div>`;
+    }
+
+    // C) Hook Status
+    html += `<div class="hook-status-inline">
+      <span class="hook-dot"></span>
+      ${hooksActive || 0} hooks active
+    </div>`;
+
+    container.innerHTML = html;
+    container.classList.add('content-loaded');
+    lucide.createIcons();
+  }
+
+  // ---- Skill Landscape ----
+  function renderSkillLandscape(skillTypes, skillDecisions) {
+    const container = document.getElementById('skill-landscape-body');
+
+    const community = (skillTypes && skillTypes.community) || 0;
+    const proven = (skillTypes && skillTypes.proven) || 0;
+    const backup = (skillTypes && skillTypes.backup) || 0;
+    const total = community + proven + backup;
+
+    // Badge
+    const badge = document.getElementById('landscape-badge');
+    badge.textContent = total > 0 ? `${total} total` : 'No data';
+
+    let html = '';
+
+    // A) Skill Breakdown
+    html += `<div class="subsection-label">Skill Breakdown</div>`;
+    html += `<div class="skill-breakdown-row">
+      <span class="sbl-item"><strong style="color:var(--muted);">${community}</strong> Community</span>
+      <span class="sbl-sep">&middot;</span>
+      <span class="sbl-item"><strong style="color:var(--green);">${proven}</strong> Proven</span>
+      <span class="sbl-sep">&middot;</span>
+      <span class="sbl-item"><strong style="color:var(--amber);">${backup}</strong> Backup</span>
+    </div>`;
+
+    // B) Recent Skill Decisions
+    html += `<div class="subsection-label">Recent Skill Decisions</div>`;
+    if (skillDecisions && skillDecisions.length > 0) {
+      html += `<div class="decision-list">`;
+      skillDecisions.slice(0, 10).forEach(d => {
+        const isPublished = (d.action || '').toUpperCase() === 'SKILL_PUBLISHED';
+        const dotClass = isPublished ? 'published' : 'no-skill';
+        const actionClass = isPublished ? 'published' : 'no-skill';
+        const dateStr = d.date ? relativeTime(d.date) : '--';
+
+        html += `<div class="decision-item">
+          <div class="decision-dot ${dotClass}"></div>
+          <div class="decision-content">
+            <div class="decision-action ${actionClass}">${escHtml(d.action || 'Unknown')}</div>
+            <div class="decision-reason">${escHtml(d.skill || '')}${d.reason ? ' \u2014 ' + escHtml(d.reason) : ''}</div>
+          </div>
+          <span class="decision-date">${dateStr}</span>
+        </div>`;
+      });
+      html += `</div>`;
+    } else {
+      html += `<div style="padding:20px;color:var(--muted);font-size:13px;display:flex;align-items:center;gap:8px;"><i data-lucide="inbox" style="width:16px;height:16px;color:var(--muted);"></i> No skill decisions yet</div>`;
+    }
+
+    container.innerHTML = html;
+    container.classList.add('content-loaded');
+    lucide.createIcons();
   }
 
   window.toggleBreakdown = function(id, btn) {
@@ -1375,6 +1812,13 @@
     const skillTotals = {};
     const skillByUser = {};
 
+    // Aggregated new fields
+    let aggEnforcement = { blocks: 0, warns: 0, allows: 0, suggests: 0 };
+    let aggOverrides = [];
+    let aggSkillTypes = { community: 0, proven: 0, backup: 0 };
+    let aggSkillDecisions = [];
+    let totalHooksActive = 0;
+
     gistContents.forEach(data => {
       if (!data) return;
 
@@ -1401,7 +1845,8 @@
           lastSync: data.reported_at || data.last_sync || data.timestamp || new Date().toISOString(),
           skillCount: sCount,
           doctorStatus: docStatus,
-          doctorDetail: data.doctor || null
+          doctorDetail: data.doctor || null,
+          skillTypes: data.skill_types || null
         });
       }
 
@@ -1419,9 +1864,55 @@
           }
         });
       }
+
+      // Enforcement data
+      const enf = data.enforcement_last_7d;
+      if (enf && typeof enf === 'object') {
+        aggEnforcement.blocks += (enf.blocks || 0);
+        aggEnforcement.warns += (enf.warns || 0);
+        aggEnforcement.allows += (enf.allows || 0);
+        aggEnforcement.suggests += (enf.suggests || 0);
+        // Count hooks from by_hook keys
+        if (enf.by_hook && typeof enf.by_hook === 'object') {
+          totalHooksActive = Math.max(totalHooksActive, Object.keys(enf.by_hook).length);
+        }
+      }
+
+      // Overrides
+      const overrides = data.overrides_last_7d;
+      if (Array.isArray(overrides)) {
+        aggOverrides.push(...overrides);
+      }
+
+      // Skill types
+      const st = data.skill_types;
+      if (st && typeof st === 'object') {
+        // Use max per device (not sum) for the global skill type counts
+        aggSkillTypes.community = Math.max(aggSkillTypes.community, st.community || 0);
+        aggSkillTypes.proven = Math.max(aggSkillTypes.proven, st.proven || 0);
+        aggSkillTypes.backup = Math.max(aggSkillTypes.backup, st.backup || 0);
+      }
+
+      // Skill decisions
+      const decisions = data.skill_decisions_last_7d;
+      if (Array.isArray(decisions)) {
+        aggSkillDecisions.push(...decisions);
+      }
     });
 
-    return { devices, skillData: { totals: skillTotals, byUser: skillByUser } };
+    // Sort overrides and decisions by date descending
+    aggOverrides.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+    aggSkillDecisions.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+    return {
+      devices,
+      skillData: { totals: skillTotals, byUser: skillByUser },
+      enforcement: aggEnforcement,
+      overrides: aggOverrides,
+      skillTypes: aggSkillTypes,
+      skillDecisions: aggSkillDecisions,
+      hooksActive: totalHooksActive
+    };
   }
 
   // ---- Main init ----
@@ -1439,13 +1930,13 @@
 
     // Fetch gist contents
     const gistContents = await Promise.all(gists.map(g => fetchGistContent(g, token)));
-    const { devices, skillData } = processGistData(gistContents);
+    const { devices, skillData, enforcement, overrides, skillTypes, skillDecisions, hooksActive } = processGistData(gistContents);
 
     // Render everything
-    // Skills count = max from any device's installed skills
-    const maxSkills = devices.reduce((max, d) => Math.max(max, d.skillCount || 0), 0);
-    renderStats(devices, maxSkills, issues.length);
+    renderStats(devices, skillTypes, enforcement, hooksActive);
     renderTeamTable(devices);
+    renderProtocolHealth(enforcement, overrides, hooksActive);
+    renderSkillLandscape(skillTypes, skillDecisions);
     renderSkillChart(skillData);
     renderAuditLog(commits);
     renderIssues(issues);
