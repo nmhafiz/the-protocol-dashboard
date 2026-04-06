@@ -978,11 +978,12 @@
     <div class="help-box">
       <strong><i data-lucide="info"></i> How to get your token</strong>
       <span class="help-path">GitHub &rarr; Settings &rarr; Developer Settings &rarr; Personal Access Tokens &rarr; Fine-grained &rarr; Generate new</span>
-      Required permissions:
+      Repository access: <strong>All repositories</strong>
       <div class="permissions">
         <span class="perm-tag">Gists (read)</span>
         <span class="perm-tag">Issues (read)</span>
         <span class="perm-tag">Contents (read)</span>
+        <span class="perm-tag">Metadata (read)</span>
       </div>
     </div>
     <input type="password" id="pat-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
@@ -1279,10 +1280,27 @@
   // ---- Data fetching ----
   async function fetchGists(token) {
     try {
-      const gists = await ghFetch('https://api.github.com/gists?per_page=100', token);
-      return gists.filter(g => {
-        return Object.keys(g.files).some(name => name.startsWith('the-protocol-status-') && name.endsWith('.json'));
-      });
+      // Fetch from all collaborators of the-protocol repo
+      const collabs = await ghFetch('https://api.github.com/repos/nmhafiz/the-protocol/collaborators', token).catch(() => []);
+      // Also include repo owner
+      const users = ['nmhafiz'];
+      if (Array.isArray(collabs)) {
+        collabs.forEach(c => { if (c.login && !users.includes(c.login)) users.push(c.login); });
+      }
+      // Fetch gists from each user
+      const allGists = [];
+      for (const user of users) {
+        try {
+          const gists = await ghFetch(`https://api.github.com/users/${user}/gists?per_page=100`, token);
+          if (Array.isArray(gists)) {
+            const matched = gists.filter(g =>
+              Object.keys(g.files).some(name => name.startsWith('the-protocol-status-') && name.endsWith('.json'))
+            );
+            allGists.push(...matched);
+          }
+        } catch { /* skip user if fails */ }
+      }
+      return allGists;
     } catch {
       return [];
     }
@@ -1290,7 +1308,8 @@
 
   async function fetchCommits(token) {
     try {
-      return await ghFetch('https://api.github.com/repos/nmhafiz/the-protocol/commits?per_page=20', token);
+      const result = await ghFetch('https://api.github.com/repos/nmhafiz/the-protocol/commits?per_page=20', token);
+      return Array.isArray(result) ? result : [];
     } catch {
       return [];
     }
@@ -1298,7 +1317,8 @@
 
   async function fetchIssues(token) {
     try {
-      return await ghFetch('https://api.github.com/repos/nmhafiz/the-protocol/issues?labels=skill-report&state=open&per_page=30', token);
+      const result = await ghFetch('https://api.github.com/repos/nmhafiz/the-protocol/issues?labels=skill-report&state=open&per_page=30', token);
+      return Array.isArray(result) ? result : [];
     } catch {
       return [];
     }
